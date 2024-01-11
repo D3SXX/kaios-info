@@ -1,0 +1,8 @@
+{
+    "en-US":
+       [   
+           {"softLeftClear":"Clear","softLeftOptions":"Options","softCenter":"Select","softRight":"Menu","close":"Close"
+            },
+            {"1":"OS","index":"System"}
+       ]
+}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en-US" dir="ltr">
+  <head>
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1"
+    />
+    <meta charset="utf-8" />
+    <meta name="theme-color" content="#20407b" />
+    <title>KaiOS Info</title>
+    <link rel="stylesheet" type="text/css" href="./src/css/header.css" />
+    <link rel="stylesheet" type="text/css" href="./src/css/input.css" />
+    <link rel="stylesheet" type="text/css" href="./src/css/softkey.css" />
+    <link rel="stylesheet" type="text/css" href="./src/css/navbar.css" />
+    <link rel="stylesheet" type="text/css" href="./src/css/root.css" />
+    <link rel="stylesheet" type="text/css" href="./src/css/entry.css" />
+    <link rel="stylesheet" type="text/css" href="./src/css/debug.css" />
+    <link rel="stylesheet" type="text/css" href="./src/css/menu.css">
+    <link rel="stylesheet" type="text/css" href="./src/css/options.css">
+    <link rel="stylesheet" type="text/css" href="./src/css/logs.css">
+    <link rel="stylesheet" type="text/css" href="./src/css/toast.css">
+  </head>
+
+  <body>
+    <div id="root">
+      <header>
+        <span>KaiOS Info</span>
+        <!-- Name of the application -->
+      </header>
+      <div class="toast notactive" id="toast"></div>
+      <div id="nav-bar" class="navbar">
+        <!-- Navigation bar -->
+      </div>
+
+      <div id="menu-container" class="entry">
+        <!-- Entries -->
+      </div>
+      <div id="menu">     
+         <!-- Menu -->   
+    </div>
+    <div id="options">
+      <!-- Options menu -->
+      </div>
+    <div id="logs">
+      <!-- Logs windows -->
+    </div>
+      <div id="debug" class="debug">
+        <!-- Build info and debug info -->
+      </div>
+
+      <div id="softkey">
+        <label id="left"></label>
+        <label id="center"></label>
+        <label id="right"></label>
+      </div>
+    </div>
+    <script defer src="./src/index.js"></script>
+  </body>
+</html>

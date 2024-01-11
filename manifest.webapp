@@ -1,0 +1,36 @@
+{
+  "version": "0.0.1",
+  "name": "KaiOS Info",
+  "description": "View information about your KaiOS device",
+  "type": "certified",
+  "launch_path": "/index.html",
+  "fullscreen": false,
+  "orientation": "portrait",
+  "theme": "#9b27af",
+  "theme_color": "#9b27af",
+  "background_color": "#9b27af",
+  "icons": {
+    "56": "/assets/icons/",
+    "112": "/assets/icons/"
+  },
+  "developer": {  
+    "url": "https://github.com/D3SXX",
+    "name": "D3SXX"
+  },
+  "origin": "app://kaiosinfo.d3sxx",
+  "locales": {
+    "en-US": {
+      "name": "KaiOS Info",
+      "subtitle": "View information about your KaiOS device",
+      "description": "View information about your KaiOS device"
+    }
+  },
+  "permissions": {
+    "contacts":{ "access": "readwrite" },
+    "settings":{ "access": "readonly" },
+    "sms": {},
+    "storage": {},
+    "device-storage:sdcard": { "access": "readcreate" }
+  },
+  "default_locale": "en-US"
+}

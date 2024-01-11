@@ -1,0 +1,34 @@
+.toast{
+    z-index: 9999;
+    position: fixed;
+    bottom: 360px;
+    width: 100%;
+    height: 35px;
+    right:0px;
+    background-color: gray;
+    color:white;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 1;
+    transition: bottom 0.35s;
+    text-align: center;
+}
+
+.toast span{
+    margin-top:20%;
+    text-overflow: ellipsis;
+    overflow: hidden; 
+    white-space: nowrap;
+    width: 220px;
+
+}
+
+.toast.active {
+    bottom: 260px;
+}
+
+#toast.notactive {
+    bottom: 360px;
+}

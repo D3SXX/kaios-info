@@ -1,0 +1,69 @@
+#logs {
+    z-index: 4;
+    position: fixed;
+    bottom: -230px;
+    width: 100%;
+    height: 210px;
+    right:0px;
+    background-color: white;
+    border-left: 1px solid purple;
+    border-top: 1px solid purple;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 1;
+    transition: bottom 0.35s;
+}
+
+#logs div{
+    align-items: left;
+    justify-content: flex-start;
+    background-color: #ffffff;
+    width:220px;
+    margin-top: 5px;
+}
+
+#logs ul{
+    padding: 0;
+    list-style-position: inside;
+    -webkit-padding-start: 0;
+    margin-top: 2px;
+}
+#logs li{
+    list-style: none;
+    height: auto;
+    min-height: 25px;
+    display: flex;
+    padding: 0;
+    font-size:16px;
+}
+#logs .hovered{
+    background: #db53fd;
+    color: white;
+    width: 240px;
+    margin-left: -10px;
+    text-indent: 10px;
+}
+
+#logs .hidden{
+    display: none;
+}
+
+@keyframes marqueeAnimation {
+    from {
+        transform: translateX(0%);
+    }
+
+    to {
+        transform: translateX(-35%);
+    }
+}
+
+#logs.active {
+    bottom: 30px;
+}
+
+#logs.notactive {
+    bottom: -230px;
+}

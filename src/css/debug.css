@@ -1,0 +1,9 @@
+.debug {
+    position: absolute;
+    z-index: 2; 
+    margin-right: 5px;
+    color:black;
+    background-color: transparent;
+    top:245px;
+    right:0px;
+  }
