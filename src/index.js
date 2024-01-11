@@ -1,5 +1,7 @@
 "use strict";
 
+//const getSdcards = navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard');
+
 const buildInfo = ["0.0.1","10.01.2024"];
 let localeData;
 
@@ -117,21 +119,23 @@ const controls = {
   },
   handleKeydown: function(e) {
     debug.print(`${e.key} triggered`);
+    let pastRow = controls.row;
     switch (e.key) {
       case "ArrowUp":
-        this.increase();
+        controls.decrease("row");
+        menuHover(controls.row,pastRow,"")
         break;
       case "ArrowDown":
-        nav('down');
+        controls.increase("row");
+        menuHover(controls.row,pastRow,"")
         break;
       case "ArrowRight":
-        nav('right');
+        controls.increase("col");
         break;
       case "ArrowLeft":
-        nav('left');
+        controls.decrease("col");
         break;
       case "Enter":
-        nav('enter');
         break;
       case "SoftRight":
         nav('softright');
@@ -174,24 +178,51 @@ const menu = {
     switch (col) {
       case 1:
         menu = `<ul>
-        <li id="1">${localeData[1]["1"]}<div>
-        </div></li>
+        <li id="1">${localeData[1]["1"]}: ${getInfoString("model")}</li>
+        <li id="2">${localeData[1]["2"]}: KaiOS ${getInfoString("os")}</li>
+        </ul>
     `
-
+      controls.rowLimit = 2;
   }
   return [menu,navbarEntries]
 }
 }
 
 function getInfoString(item){
-  let info = "";
+  let info = "",position;
   switch(item){
+    case "model":
+      info = navigator.userAgent;
+      position = info.search(";") + 1;
+      info = info.substring(position);
+      info = info.substring(0,info.search(";")).split("_").join(" ");
+      break;
     case "os":
       info = navigator.userAgent;
+      position = info.search("KAIOS") + "KAIOS ".length;
+      info = info.substring(position);
       break;
   }
   return info;
 }
 
-document.activeElement.addEventListener("keydown", controls.handleKeydown);
 
+
+function menuHover(row = undefined, pastRow = undefined, obj = undefined){
+  debug.print(`menuHover() - Row ${obj}${row} - Hover, Row ${obj}${pastRow}: Unhover`)
+  if(pastRow){
+    const pastElement = document.getElementById(obj + pastRow);
+  if(pastElement){
+    pastElement.classList.remove("hovered");
+  }
+  }
+  if(row){
+    const currentElement = document.getElementById(obj + row);
+    if(currentElement){
+      currentElement.classList.add("hovered");
+    }
+  }
+}
+
+
+document.activeElement.addEventListener("keydown", controls.handleKeydown);
