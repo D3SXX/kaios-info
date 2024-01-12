@@ -2,7 +2,7 @@
 
 //const getSdcards = navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard');
 
-const buildInfo = ["0.0.1","10.01.2024"];
+const buildInfo = ["0.0.2","12.01.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -131,9 +131,11 @@ const controls = {
         break;
       case "ArrowRight":
         controls.increase("col");
+        menu.draw();
         break;
       case "ArrowLeft":
         controls.decrease("col");
+        menu.draw();
         break;
       case "Enter":
         break;
@@ -174,22 +176,37 @@ const menu = {
   getMenuData: function(col){
     let menu = "";
     let navbarEntries =
-    `<span id="l1" class = "notactive">${localeData[1]["index"]}</span>`;
+    `<span id="l1" class = "active">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span>`;
     switch (col) {
       case 1:
         menu = `<ul>
         <li id="1">${localeData[1]["1"]}: ${getInfoString("model")}</li>
         <li id="2">${localeData[1]["2"]}: KaiOS ${getInfoString("os")}</li>
+        <li id="3">${localeData[1]["3"]}: ${getInfoString("firefox")}</li>
         </ul>
     `
-      controls.rowLimit = 2;
+      controls.rowLimit = 3;
+    break;
+      case 2:
+        navbarEntries =
+        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="active">${localeData[2]["index"]}</span>`;
+        menu = `<ul>
+        <li id="1">${localeData[2]["1"]}: ${getInfoString("resolution")}</li>
+        <li id="2">${localeData[2]["2"]}: ${getInfoString("depth")}</li>
+        <li id="3">${localeData[2]["3"]}: ${getInfoString("aspectratio")}</li>
+        <li id="4">${localeData[2]["4"]}: ${getInfoString("orientation")}</li>
+        </ul>`
+        controls.rowLimit = 4;
+        break;
+      
   }
+  controls.colLimit = 2;
   return [menu,navbarEntries]
 }
 }
 
 function getInfoString(item){
-  let info = "",position;
+  let info,position;
   switch(item){
     case "model":
       info = navigator.userAgent;
@@ -202,7 +219,35 @@ function getInfoString(item){
       position = info.search("KAIOS") + "KAIOS ".length;
       info = info.substring(position);
       break;
+    case "firefox":
+      info = navigator.userAgent;
+      position = info.search("Firefox") + "Firefox ".length;
+      info = info.substring(position);
+      info = info.substring(0,info.search(" "));
+      break;
+    case "resolution":
+      info = `${window.screen.height}x${window.screen.width}`
+      break;
+    case "depth":
+      info = window.screen.colorDepth;
+      break;
+    case "aspectratio":
+      let height = window.screen.height;
+      let width = window.screen.width;
+      let ratio = width/height;
+      info = 0;
+      let k = 0;
+      do{
+        k++;
+        info += ratio;
+      } while (info < height && info % 1 != 0)
+      info = `${k}:${info}`;
+      break;
+    case "orientation":
+      info = window.screen.mozOrientation;
+      break;
   }
+  
   return info;
 }
 

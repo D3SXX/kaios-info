@@ -1,2 +1,7 @@
+Build 0.0.2 from 12.01.2024
+Added "Display" tab
+    - Added rows for screen's resolution, depth, aspect ratio and orientation
+Added row "Firefox version" in System's tab
+
 Build 0.0.1 from 11.01.2024
 Initial build

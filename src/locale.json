@@ -3,6 +3,7 @@
        [   
            {"softLeftClear":"Clear","softLeftOptions":"Options","softCenter":"Select","softRight":"Menu","close":"Close"
             },
-            {"1":"Model","2":"OS","index":"System"}
+            {"1":"Model","2":"OS","3":"Firefox version","index":"System"},
+            {"1":"Resolution","2":"Depth","3":"Aspect ratio","4":"Orientation","index":"Display"}
        ]
 }
