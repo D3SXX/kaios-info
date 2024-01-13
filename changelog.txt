@@ -1,3 +1,9 @@
+Build 0.0.3 from 13.01.2023
+Added CPU tab
+    - Added rows for CPU's model (W.I.P.), cores and estimated frequency
+Added GPU tab
+    - Added rows for GPU's model and manufacturer
+    
 Build 0.0.2 from 12.01.2024
 Added "Display" tab
     - Added rows for screen's resolution, depth, aspect ratio and orientation

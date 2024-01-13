@@ -2,7 +2,7 @@
 
 //const getSdcards = navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard');
 
-const buildInfo = ["0.0.2","12.01.2024"];
+const buildInfo = ["0.0.3","13.01.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -176,7 +176,7 @@ const menu = {
   getMenuData: function(col){
     let menu = "";
     let navbarEntries =
-    `<span id="l1" class = "active">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span>`;
+    `<span id="l1" class = "active">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span>`;
     switch (col) {
       case 1:
         menu = `<ul>
@@ -189,7 +189,7 @@ const menu = {
     break;
       case 2:
         navbarEntries =
-        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="active">${localeData[2]["index"]}</span>`;
+        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="active">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span>`;
         menu = `<ul>
         <li id="1">${localeData[2]["1"]}: ${getInfoString("resolution")}</li>
         <li id="2">${localeData[2]["2"]}: ${getInfoString("depth")}</li>
@@ -198,9 +198,27 @@ const menu = {
         </ul>`
         controls.rowLimit = 4;
         break;
-      
-  }
-  controls.colLimit = 2;
+      case 3:
+        navbarEntries =
+        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="active">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span>`;
+        menu = `<ul>
+        <li id="1">${localeData[3]["1"]}: ${getInfoString("cpu")}</li>
+        <li id="2">${localeData[3]["2"]}: ${getInfoString("cpu-cores")}</li>
+        <li id="3">${localeData[3]["3"]}: ${getInfoString("cpu-freq")}</li>
+        </ul>`
+        controls.rowLimit = 3;
+        break;
+      case 4:
+        navbarEntries =
+        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="active">${localeData[4]["index"]}</span>`;
+        menu = `<ul>
+        <li id="1">${localeData[4]["1"]}: ${getInfoString("gpu")}</li>
+        <li id="2">${localeData[4]["2"]}: ${getInfoString("gpu-man")}</li>
+        </ul>`
+        controls.rowLimit = 2;
+  
+      }
+  controls.colLimit = 4;
   return [menu,navbarEntries]
 }
 }
@@ -208,6 +226,8 @@ const menu = {
 function getInfoString(item){
   let info,position;
   switch(item){
+    default:
+      return "Unknown"
     case "model":
       info = navigator.userAgent;
       position = info.search(";") + 1;
@@ -246,12 +266,60 @@ function getInfoString(item){
     case "orientation":
       info = window.screen.mozOrientation;
       break;
+    case "cpu-cores":
+      info = navigator.hardwareConcurrency;
+      break;
+    case "cpu-freq":
+      const runs = 150000000;
+      const start = performance.now();
+      for (let i = runs; i>0; i--) {}
+      const end = performance.now();
+      const ms = end - start;
+      const cyclesPerRun = 2;
+      const speed = (runs / ms / 1000000) * cyclesPerRun;
+      info = `~${speed.toFixed(2)} GHz`;
+      break;
+    case "gpu":
+      return getGpuInfo(item)
+      break;
+    case "gpu-man":
+      return getGpuInfo(item)
+      break;
   }
   
   return info;
 }
 
+function getGpuInfo(type){
+  let canvas = document.createElement('canvas');
+  let gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl){
+    return "unknown"
+  }
+  else{
+    if (type == "gpu"){
+      return getUnmaskedInfo(gl).renderer
+    }
+    else{
+      return getUnmaskedInfo(gl).vendor
+    }
+  }
+}
 
+function getUnmaskedInfo(gl) {
+  var unMaskedInfo = {
+    renderer: '',
+    vendor: ''
+  };
+
+  var dbgRenderInfo = gl.getExtension("WEBGL_debug_renderer_info");
+  if (dbgRenderInfo != null) {
+    unMaskedInfo.renderer = gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL);
+    unMaskedInfo.vendor = gl.getParameter(dbgRenderInfo.UNMASKED_VENDOR_WEBGL);
+  }
+
+  return unMaskedInfo;
+}
 
 function menuHover(row = undefined, pastRow = undefined, obj = undefined){
   debug.print(`menuHover() - Row ${obj}${row} - Hover, Row ${obj}${pastRow}: Unhover`)

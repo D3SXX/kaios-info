@@ -4,6 +4,8 @@
            {"softLeftClear":"Clear","softLeftOptions":"Options","softCenter":"Select","softRight":"Menu","close":"Close"
             },
             {"1":"Model","2":"OS","3":"Firefox version","index":"System"},
-            {"1":"Resolution","2":"Depth","3":"Aspect ratio","4":"Orientation","index":"Display"}
+            {"1":"Resolution","2":"Depth","3":"Aspect ratio","4":"Orientation","index":"Display"},
+            {"1":"Model","2":"Cores","3":"Frequency","index":"CPU"},
+            {"1":"Model","2":"Manufacturer","index":"GPU"}
        ]
 }
