@@ -2,7 +2,7 @@
 
 //const getSdcards = navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard');
 
-const buildInfo = ["0.0.3","13.01.2024"];
+const buildInfo = ["0.0.4","14.01.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -176,7 +176,7 @@ const menu = {
   getMenuData: function(col){
     let menu = "";
     let navbarEntries =
-    `<span id="l1" class = "active">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span>`;
+    `<span id="l1" class = "active">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span>`;
     switch (col) {
       case 1:
         menu = `<ul>
@@ -189,7 +189,7 @@ const menu = {
     break;
       case 2:
         navbarEntries =
-        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="active">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span>`;
+        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="active">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span>`;
         menu = `<ul>
         <li id="1">${localeData[2]["1"]}: ${getInfoString("resolution")}</li>
         <li id="2">${localeData[2]["2"]}: ${getInfoString("depth")}</li>
@@ -200,7 +200,7 @@ const menu = {
         break;
       case 3:
         navbarEntries =
-        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="active">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span>`;
+        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="active">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span>`;
         menu = `<ul>
         <li id="1">${localeData[3]["1"]}: ${getInfoString("cpu")}</li>
         <li id="2">${localeData[3]["2"]}: ${getInfoString("cpu-cores")}</li>
@@ -210,15 +210,24 @@ const menu = {
         break;
       case 4:
         navbarEntries =
-        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="active">${localeData[4]["index"]}</span>`;
+        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="active">${localeData[4]["index"]}</span></span><span id="l5" class="notactive">${localeData[5]["index"]}</span>`;
         menu = `<ul>
         <li id="1">${localeData[4]["1"]}: ${getInfoString("gpu")}</li>
         <li id="2">${localeData[4]["2"]}: ${getInfoString("gpu-man")}</li>
         </ul>`
         controls.rowLimit = 2;
+        break;
+      case 5:
+        navbarEntries =
+        `<span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="active">${localeData[5]["index"]}</span>`;
+        menu = `<ul>
+        <li id="1">${localeData[5]["1"]}: ${getInfoString("camera")}</li>
+        <li id="2">${localeData[5]["2"]}: ${getInfoString("camera-resolution")}</li>
+        </ul>`
+        controls.rowLimit = 2;
   
       }
-  controls.colLimit = 4;
+  controls.colLimit = 5;
   return [menu,navbarEntries]
 }
 }
@@ -280,15 +289,59 @@ function getInfoString(item){
       info = `~${speed.toFixed(2)} GHz`;
       break;
     case "gpu":
-      return getGpuInfo(item)
-      break;
+      return getGpuInfo(item);
     case "gpu-man":
-      return getGpuInfo(item)
-      break;
+      return getGpuInfo(item);
+    case "camera":
+      return getCameraInfo();
+    case "camera-resolution":
+      return getResolutionInfo();
   }
   
   return info;
 }
+
+function getCameraInfo(){
+  if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+    navigator.mediaDevices.enumerateDevices()
+      .then(devices => {
+        const cameras = devices.filter(device => device.kind === 'videoinput');
+        
+        cameras.forEach(camera => {
+          return camera.label || "Unknown";
+        });
+      })
+      .catch(err => {
+        console.error('Error enumerating devices:', err);
+      });
+  } else {
+    return "Unknown"
+  }
+}
+
+function getResolutionInfo(){
+  navigator.mediaDevices.getUserMedia({ video: true })
+  .then(stream => {
+    const videoTrack = stream.getVideoTracks()[0];
+
+    if (videoTrack) {
+      const settings = videoTrack.getSettings();
+
+      console.log('Estimated Camera Resolution:');
+      console.log('Width:', settings.width || 'Not available');
+      console.log('Height:', settings.height || 'Not available');
+
+      // Stop the stream when you're done with it
+      stream.getTracks().forEach(track => track.stop());
+    } else {
+      console.error('No video track available in the stream.');
+    }
+  })
+  .catch(error => {
+    console.error('Error accessing camera:', error);
+  });
+}
+
 
 function getGpuInfo(type){
   let canvas = document.createElement('canvas');

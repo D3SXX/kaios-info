@@ -1,3 +1,7 @@
+Build 0.0.4 from 14.01.2023
+Added "Camera" tab
+    - Added rows for model and resolution
+
 Build 0.0.3 from 13.01.2023
 Added CPU tab
     - Added rows for CPU's model (W.I.P.), cores and estimated frequency
