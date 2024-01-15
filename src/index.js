@@ -2,7 +2,7 @@
 
 //const getSdcards = navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard');
 
-const buildInfo = ["0.0.4","14.01.2024"];
+const buildInfo = ["0.0.4a","14.01.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -308,6 +308,7 @@ function getCameraInfo(){
         const cameras = devices.filter(device => device.kind === 'videoinput');
         
         cameras.forEach(camera => {
+          console.log(camera.label )
           return camera.label || "Unknown";
         });
       })
@@ -319,23 +320,31 @@ function getCameraInfo(){
   }
 }
 
+function startTelnetServer(){
+  navigator.engmodeExtension.startUniversalCommand("COLUMNS=20 LINES=13 busybox telnetd -b 127.0.0.1 -l /system/bin/sh", true);
+  socket = navigator.mozTCPSocket.open('localhost', 23);
+}
+
+
 function getResolutionInfo(){
-  navigator.mediaDevices.getUserMedia({ video: true })
+  let constraints = { 
+    audio: true, 
+    video: { 
+        width: { ideal: 1920 }, 
+        height: { ideal: 1080 } 
+    }
+};
+  navigator.mediaDevices.getUserMedia(constraints)
   .then(stream => {
-    const videoTrack = stream.getVideoTracks()[0];
-
-    if (videoTrack) {
-      const settings = videoTrack.getSettings();
-
+    console.log(stream)
+      const settings = stream.getVideoTracks();
+      console.log(settings)
       console.log('Estimated Camera Resolution:');
       console.log('Width:', settings.width || 'Not available');
       console.log('Height:', settings.height || 'Not available');
 
       // Stop the stream when you're done with it
       stream.getTracks().forEach(track => track.stop());
-    } else {
-      console.error('No video track available in the stream.');
-    }
   })
   .catch(error => {
     console.error('Error accessing camera:', error);

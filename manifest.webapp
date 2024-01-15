@@ -30,7 +30,13 @@
     "settings":{ "access": "readonly" },
     "sms": {},
     "storage": {},
-    "device-storage:sdcard": { "access": "readcreate" }
+    "device-storage:sdcard": { "access": "readcreate" },
+    "camera":{},
+    "audio-capture":{},
+    "video-capture":{},
+    "engmode-extension": {},
+		"tcp-socket": {}
+
   },
   "default_locale": "en-US"
 }
