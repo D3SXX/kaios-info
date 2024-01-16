@@ -7,6 +7,7 @@
             {"1":"Resolution","2":"Depth","3":"Aspect ratio","4":"Orientation","index":"Display"},
             {"1":"Model","2":"Cores","3":"Frequency","index":"CPU"},
             {"1":"Model","2":"Manufacturer","index":"GPU"},
-            {"1":"Model","2":"Resolution","index":"Camera"}
+            {"1":"Model","2":"Resolution","index":"Camera"},
+            {"1":"Level","2":"Health","3":"Discharging Time","4":"Temperature","index":"Battery"}
        ]
 }
