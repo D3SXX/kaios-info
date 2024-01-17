@@ -1,5 +1,5 @@
 {
-  "version": "0.0.5",
+  "version": "0.0.6",
   "name": "KaiOS Info",
   "description": "View information about your KaiOS device",
   "type": "certified",
@@ -35,8 +35,8 @@
     "audio-capture":{},
     "video-capture":{},
     "engmode-extension": {},
-		"tcp-socket": {}
-
+		"tcp-socket": {},
+    "wifi-manage":{"description": "needed for navigator.mozWifiManager"}
   },
   "default_locale": "en-US"
 }

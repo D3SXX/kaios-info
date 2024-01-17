@@ -8,6 +8,7 @@
             {"1":"Model","2":"Cores","3":"Frequency","index":"CPU"},
             {"1":"Model","2":"Manufacturer","index":"GPU"},
             {"1":"Model","2":"Resolution","index":"Camera"},
-            {"1":"Level","2":"Health","3":"Discharging Time","4":"Temperature","index":"Battery"}
+            {"1":"Level","2":"Health","3":"Status","4":"Temperature","index":"Battery"},
+            {"1":"Type","2":"Name","3":"","4":"","index":"Network"}
        ]
 }

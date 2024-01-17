@@ -2,7 +2,7 @@
 
 //const getSdcards = navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard');
 
-const buildInfo = ["0.0.5","16.01.2024"];
+const buildInfo = ["0.0.6","17.01.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -177,7 +177,7 @@ const menu = {
   getMenuData: function(col){
     let menu = "";
     let navbarEntries =
-    `<span id="l1" class = "active">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span>`;
+    `<span id="l1" class = "active">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
     switch (col) {
       case 1:
         menu = `<ul>
@@ -190,7 +190,7 @@ const menu = {
     break;
       case 2:
         navbarEntries =
-        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="active">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span>`;
+        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="active">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
         menu = `<ul>
         <li id="1">${localeData[2]["1"]}: ${getInfoString("resolution")}</li>
         <li id="2">${localeData[2]["2"]}: ${getInfoString("depth")}</li>
@@ -201,7 +201,7 @@ const menu = {
         break;
       case 3:
         navbarEntries =
-        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="active">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span>`;
+        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="active">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
         menu = `<ul>
         <li id="1">${localeData[3]["1"]}: ${getInfoString("cpu")}</li>
         <li id="2">${localeData[3]["2"]}: ${getInfoString("cpu-cores")}</li>
@@ -211,7 +211,7 @@ const menu = {
         break;
       case 4:
         navbarEntries =
-        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="active">${localeData[4]["index"]}</span></span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span>`;
+        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="active">${localeData[4]["index"]}</span></span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
         menu = `<ul>
         <li id="1">${localeData[4]["1"]}: ${getInfoString("gpu")}</li>
         <li id="2">${localeData[4]["2"]}: ${getInfoString("gpu-man")}</li>
@@ -220,7 +220,7 @@ const menu = {
         break;
       case 5:
         navbarEntries =
-        `<span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="active">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span>`;
+        `<span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="active">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
         menu = `<ul>
         <li id="1">${localeData[5]["1"]}: ${getInfoString("camera")}</li>
         <li id="2">${localeData[5]["2"]}: ${getInfoString("camera-resolution")}</li>
@@ -229,16 +229,26 @@ const menu = {
         break;
       case 6:
         navbarEntries =
-        `<span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="active">${localeData[6]["index"]}</span>`;
+        `<span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="active">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
         menu = `<ul>
         <li id="1">${localeData[6]["1"]}: ${getInfoString("battery-level")}</li>
         <li id="2">${localeData[6]["2"]}: ${getInfoString("battery-health")}</li>
-        <li id="3">${localeData[6]["3"]}: ${getInfoString("battery-dischargingTime")}</li>
+        <li id="3">${localeData[6]["3"]}: ${getInfoString("battery-status")}</li>
         <li id="4">${localeData[6]["4"]}: ${getInfoString("battery-temperature")}</li>
         </ul>`
         controls.rowLimit = 4;
+        break;
+      case 7:
+          navbarEntries =
+          `<span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="active">${localeData[7]["index"]}</span>`;
+          menu = `<ul>
+          <li id="1">${localeData[7]["1"]}: ${getInfoString("network-type")}</li>
+          <li id="2">${localeData[7]["2"]}: ${getInfoString("network-name")}</li>
+          </ul>`
+          controls.rowLimit = 2;
+          break;  
       }
-  controls.colLimit = 6;
+  controls.colLimit = 7;
   return [menu,navbarEntries]
 }
 }
@@ -309,34 +319,66 @@ function getInfoString(item){
       return getResolutionInfo();
     case "battery-level":
     case "battery-health":
-    case "battery-dischargingTime":
+    case "battery-status":
     case "battery-temperature":
       return batteryData.get(item.replace("battery-",""));
-      
+    case "network-type":
+    case "network-name":
+      return getNetworkInfo(item);
   }
   
   return info;
 }
 
 const batteryData = {
-  Data: null,
+  data: null,
   init: function(){
     navigator.getBattery().then(function(result){
       batteryData.data = result;
     });
   },
   get: function(type){
-    let returnString = this.data[type]
+    let returnString = this.data[type];
     if (type == "level"){
-      returnString = `${parseFloat(returnString)*100}%`
+      returnString = `${parseFloat(returnString)*100}%`;
     }
     else if (type == "temperature"){
-      returnString += " °C"
+      returnString += " °C";
+    }
+    else if (type == "status"){
+      if (this.data.charging){
+        if (this.data.chargingTime == 0){
+          returnString = "Charged"
+        }
+        else{
+          returnString = `Charging (${this.data.chargingTime})`
+        }
+      }
+      else{
+        returnString = `Discharging (${this.data.dischargingTime})`
+      }
     }
     return returnString;  
   }  
 
 }
+
+function getNetworkInfo(type){
+  let wifiData = navigator.mozWifiManager;
+  if (wifiData.connection.status == "connected"){
+    switch (type){
+      case "network-type":
+        return `WIFI (${wifiData.connection.network.frequency} MHz)`;
+      case "network-name":
+        return wifiData.connection.network.ssid;
+    } 
+  }
+  else{
+    return "Unknown"
+  }
+
+}
+
 function getCameraInfo(){
   if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
     navigator.mediaDevices.enumerateDevices()
@@ -355,12 +397,6 @@ function getCameraInfo(){
     return "Unknown"
   }
 }
-
-
-function startTelnetServer(){
-  navigator.engmodeExtension.startUniversalCommand("COLUMNS=20 LINES=13 busybox telnetd -b 127.0.0.1 -l /system/bin/sh", true);
-}
-
 
 function getResolutionInfo(){
   let constraints = { 
@@ -386,34 +422,6 @@ function getResolutionInfo(){
     console.error('Error accessing camera:', error);
   });
 }
-
-
-function telnet(command) {
-    let socket = navigator.mozTCPSocket.open('localhost', 23);
-    
-    let receivedDataBuffer = '';
-    console.log("Sending command:", command)
-    socket.onopen = function(){
-      function telnetSend(ch){
-        socket.send(ch);
-      }
-      command = command = "\n";
-      for(let i = 0; i<command.length; i++){
-        telnetSend(command.charAt(i))
-      }
-    }
-    socket.ondata = function (event) {
-      if (typeof event.data === 'string') {
-        console.log(event.data);
-      }
-    }
-    
-    socket.onerror = function (error) {
-      reject(error);
-    };
-}
-
-
 
 function getGpuInfo(type){
   let canvas = document.createElement('canvas');

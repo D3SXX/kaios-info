@@ -1,3 +1,9 @@
+Build 0.0.6 from 17.01.2023
+Added "Network" tab
+    - Added rows for the type and name of the currently connected network (currently only works for Wi-Fi)
+Improved "Battery" tab
+    - The discharge time has been replaced with a status that will change dynamically depending on the status
+
 Build 0.0.5 from 16.01.2023
 Added "Battery" tab
     - Added rows for battery's level, health, discharging time and temperature
