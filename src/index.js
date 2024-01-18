@@ -2,7 +2,7 @@
 
 //const getSdcards = navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard');
 
-const buildInfo = ["0.0.6","17.01.2024"];
+const buildInfo = ["0.0.7","18.01.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -95,6 +95,7 @@ const controls = {
         this[type] = 1;
        }
     debug.print(`controls.increase() - ${type}: ${this[type]}`);
+    scrollHide()
   },
   decrease: function(type){
     let limit = type+"Limit";
@@ -105,6 +106,7 @@ const controls = {
             this[type] = this[limit];
           }
           debug.print(`controls.decrease() - ${type}: ${this[type]}`);
+          scrollHide()
   },
   updateLimits: function(col = this.colLimit,row = this.rowLimit, type = ""){
     let colLimit = `col${type}Limit`;
@@ -244,14 +246,46 @@ const menu = {
           menu = `<ul>
           <li id="1">${localeData[7]["1"]}: ${getInfoString("network-type")}</li>
           <li id="2">${localeData[7]["2"]}: ${getInfoString("network-name")}</li>
+          <li id="3">${localeData[7]["3"]}: ${getInfoString("network-speed")}</li>
+          <li id="4">${localeData[7]["4"]}: ${getInfoString("network-internet")}</li>
+          <li id="5">${localeData[7]["5"]}: ${getInfoString("network-mac")}</li>
           </ul>`
-          controls.rowLimit = 2;
+          controls.rowLimit = 5;
           break;  
       }
   controls.colLimit = 7;
   return [menu,navbarEntries]
 }
 }
+
+function scrollHide(){
+      let limit = 4;
+      if (controls.rowLimit <= limit) return;
+      if (controls.row > limit) {
+        debug.print(`scrollHide() - Hide id: 1 show id: 5`)
+        hideElement(1);
+        showElement(5)
+      } else if (controls.row <= limit){
+        debug.print(`scrollHide() - Hide id: 5 show id: 1`)
+        showElement(1);
+        hideElement(5);
+      }
+  }
+
+function hideElement(id) {
+    document.getElementById(id).style.display = "none";
+  }
+function showElement(id) {
+    document.getElementById(id).style.display = "flex";
+  }
+
+  function showElements(obj, start, end) {
+    debug.print(`scrollHide() - showElements() - from ${start} upto ${end}`)
+    for (let i = start; i <= end; i++) {
+      showElement(obj + i);
+    }
+  }
+
 
 function getInfoString(item){
   let info,position;
@@ -324,6 +358,9 @@ function getInfoString(item){
       return batteryData.get(item.replace("battery-",""));
     case "network-type":
     case "network-name":
+    case "network-speed":
+    case "network-internet":
+    case "network-mac":
       return getNetworkInfo(item);
   }
   
@@ -351,11 +388,27 @@ const batteryData = {
           returnString = "Charged"
         }
         else{
-          returnString = `Charging (${this.data.chargingTime})`
+          let remainingTime = ""
+          if (this.data.chargingTime != Infinity){
+            let hours = this.data.chargingTime / 3600;
+            const minutes = Math.ceil((hours - Math.floor(hours)) * 60);
+            const additionalZero = minutes < 10 ? "0" : "";
+            hours = Math.floor(hours);
+            remainingTime = `(${hours}:${additionalZero}${minutes} left)`
+          }
+          returnString = `Charging ${remainingTime}`
         }
       }
       else{
-        returnString = `Discharging (${this.data.dischargingTime})`
+        let remainingTime = ""
+        if (this.data.dischargingTime != Infinity){
+          let hours = this.data.dischargingTime / 3600;
+          const minutes = Math.ceil((hours - Math.floor(hours)) * 60);
+          const additionalZero = minutes < 10 ? "0" : "";
+          hours = Math.floor(hours);
+          remainingTime = `(${hours}:${additionalZero}${minutes} left)`
+        }
+        returnString = `Discharging ${remainingTime}`
       }
     }
     return returnString;  
@@ -365,12 +418,19 @@ const batteryData = {
 
 function getNetworkInfo(type){
   let wifiData = navigator.mozWifiManager;
+  let wifiConnectionData = wifiData.connectionInformation;
   if (wifiData.connection.status == "connected"){
     switch (type){
       case "network-type":
-        return `WIFI (${wifiData.connection.network.frequency} MHz)`;
+        return `Wi-Fi (${wifiData.connection.network.frequency} MHz)`;
       case "network-name":
-        return wifiData.connection.network.ssid;
+        return `${wifiData.connection.network.ssid} (${wifiConnectionData.signalStrength} dBm)`;
+      case "network-speed":
+        return `${wifiConnectionData.linkSpeed} Mbps`
+      case "network-internet":
+        return wifiData.hasInternet;
+      case "network-mac":
+        return wifiData.macAddress;
     } 
   }
   else{
