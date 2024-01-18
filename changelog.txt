@@ -1,3 +1,10 @@
+Build 0.0.7 from 18.01.2023
+Added new rows for "Network" tab
+    - Added rows for speed, internet access and MAC address
+    - Renamed "Name" row to "SSID" and added signal strength to it
+Improved "Battery" tab
+    - Row for "status" row now shows remaining time in HH:MM format instead of seconds
+
 Build 0.0.6 from 17.01.2023
 Added "Network" tab
     - Added rows for the type and name of the currently connected network (currently only works for Wi-Fi)
