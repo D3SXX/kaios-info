@@ -2,7 +2,7 @@
 
 //const getSdcards = navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard');
 
-const buildInfo = ["0.0.7","18.01.2024"];
+const buildInfo = ["0.0.8","19.01.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -141,6 +141,7 @@ const controls = {
         menu.draw();
         break;
       case "Enter":
+        hideShowList();
         break;
       case "SoftRight":
         nav('softright');
@@ -244,13 +245,17 @@ const menu = {
           navbarEntries =
           `<span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="active">${localeData[7]["index"]}</span>`;
           menu = `<ul>
-          <li id="1">${localeData[7]["1"]}: ${getInfoString("network-type")}</li>
-          <li id="2">${localeData[7]["2"]}: ${getInfoString("network-name")}</li>
-          <li id="3">${localeData[7]["3"]}: ${getInfoString("network-speed")}</li>
-          <li id="4">${localeData[7]["4"]}: ${getInfoString("network-internet")}</li>
-          <li id="5">${localeData[7]["5"]}: ${getInfoString("network-mac")}</li>
+          <li id="1">${localeData[7]["1"]}: ${getInfoString("network-wifi-type")}</li>
+          <li id="2">${localeData[7]["2"]}: ${getInfoString("network-wifi-ssid")}</li>
+          <li id="3">${localeData[7]["3"]}: ${getInfoString("network-wifi-speed")}</li>
+          <li id="4">${localeData[7]["4"]}: ${getInfoString("network-wifi-signal")}</li>
+          <li id="5">${localeData[7]["5"]}: ${getInfoString("network-wifi-ip")}</li>
+          <li id="6">${localeData[7]["6"]}: ${getInfoString("network-wifi-frequency")}</li>
+          <li id="7">${localeData[7]["7"]}: ${getInfoString("network-wifi-internet")}</li>
+          <li id="8">${localeData[7]["8"]}: ${getInfoString("network-wifi-hidden")}</li>
+          <li id="9">${localeData[7]["9"]}: ${getInfoString("network-wifi-mac")}</li>
           </ul>`
-          controls.rowLimit = 5;
+          controls.rowLimit = 9;
           break;  
       }
   controls.colLimit = 7;
@@ -259,17 +264,24 @@ const menu = {
 }
 
 function scrollHide(){
-      let limit = 4;
-      if (controls.rowLimit <= limit) return;
-      if (controls.row > limit) {
-        debug.print(`scrollHide() - Hide id: 1 show id: 5`)
-        hideElement(1);
-        showElement(5)
-      } else if (controls.row <= limit){
-        debug.print(`scrollHide() - Hide id: 5 show id: 1`)
-        showElement(1);
-        hideElement(5);
+      const limit = 4;
+      const entriesAmount = controls.rowLimit;
+      if(entriesAmount <= limit){
+        return;
       }
+      const scrolls = Math.ceil(entriesAmount / limit);
+      const currentScrollPos = Math.ceil(controls.row / limit);
+      let stopLimit = currentScrollPos * limit + 1;
+      if(stopLimit > entriesAmount){
+        stopLimit = entriesAmount; // Prevent overflow
+      }
+      let startLimit = stopLimit - limit; 
+      debug.print(`scrollHide() - startLimit: ${startLimit} , endLimit: ${stopLimit}`) 
+      showElements("", startLimit, stopLimit);
+      if(scrolls == currentScrollPos){
+        startLimit += 1; // Prevent overflow in the last scroll
+      }
+      hideElements("", 1, startLimit-1, stopLimit);
   }
 
 function hideElement(id) {
@@ -285,7 +297,14 @@ function showElement(id) {
       showElement(obj + i);
     }
   }
-
+  function hideElements(obj, startUp, endUp) {
+    debug.print(`scrollHide() - hideElements() - from ${startUp} upto ${endUp}`);
+    if(startUp != endUp){
+    for (let i = startUp; i <= endUp; i++) {
+      hideElement(obj + i);
+    }
+  }
+}
 
 function getInfoString(item){
   let info,position;
@@ -356,11 +375,15 @@ function getInfoString(item){
     case "battery-status":
     case "battery-temperature":
       return batteryData.get(item.replace("battery-",""));
-    case "network-type":
-    case "network-name":
-    case "network-speed":
-    case "network-internet":
-    case "network-mac":
+    case "network-wifi-type":
+    case "network-wifi-ssid":
+    case "network-wifi-speed":
+    case "network-wifi-signal":
+    case "network-wifi-ip":
+    case "network-wifi-frequency":
+    case "network-wifi-internet":
+    case "network-wifi-hidden":
+    case "network-wifi-mac":
       return getNetworkInfo(item);
   }
   
@@ -416,22 +439,53 @@ const batteryData = {
 
 }
 
+function hideShowList(){
+  let splitAtRow = localeData[controls.col]["splitAtRow"];
+  if (typeof splitAtRow === 'number'){
+    if (controls.row == 1){
+      if(document.getElementById(2).style.display === "none"){
+        debug.print(`hideShowList() - Showing elements from 2 to ${splitAtRow}`);
+        showElements("",2, splitAtRow);
+      }
+      else{
+        debug.print(`hideShowList() - hiding elements from 2 to ${splitAtRow}`);
+        hideElements("",2, splitAtRow);
+      }
+    }
+    else if(splitAtRow+1 == controls.row){
+
+    }
+  }
+  else{
+    return;
+  }
+}
+
 function getNetworkInfo(type){
   let wifiData = navigator.mozWifiManager;
   let wifiConnectionData = wifiData.connectionInformation;
+  let wifiStatus = wifiData.enabled ? "Enabled" : "Disabled";
   if (wifiData.connection.status == "connected"){
     switch (type){
-      case "network-type":
-        return `Wi-Fi (${wifiData.connection.network.frequency} MHz)`;
-      case "network-name":
-        return `${wifiData.connection.network.ssid} (${wifiConnectionData.signalStrength} dBm)`;
-      case "network-speed":
-        return `${wifiConnectionData.linkSpeed} Mbps`
-      case "network-internet":
+      case "network-wifi-type":
+        return `Wi-Fi (${wifiStatus})`;
+      case "network-wifi-ssid":
+        return `${wifiData.connection.network.ssid}`;
+      case "network-wifi-speed":
+        return `${wifiConnectionData.linkSpeed} Mbps`;
+      case "network-wifi-signal":
+        return `${wifiConnectionData.signalStrength} dBm`;
+      case "network-wifi-ip":
+        return wifiConnectionData.ipAddress;
+      case "network-wifi-frequency":
+        return `${wifiData.connection.network.frequency} MHz`;
+      case "network-wifi-internet":
         return wifiData.hasInternet;
-      case "network-mac":
+      case "network-wifi-hidden":
+        return wifiData.connection.network.hidden;
+      case "network-wifi-mac":
         return wifiData.macAddress;
-    } 
+    }
   }
   else{
     return "Unknown"

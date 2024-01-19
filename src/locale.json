@@ -9,6 +9,6 @@
             {"1":"Model","2":"Manufacturer","index":"GPU"},
             {"1":"Model","2":"Resolution","index":"Camera"},
             {"1":"Level","2":"Health","3":"Status","4":"Temperature","index":"Battery"},
-            {"1":"Type","2":"SSID","3":"Speed","4":"Internet Access","5":"MAC","index":"Network"}
+            {"1":"Type","2":"SSID","3":"Speed","4":"Signal Strength","5":"IP Address","6":"Frequency","7":"Internet Access","8":"Hidden SSID","9":"MAC","splitAtRow":9,"index":"Network"}
        ]
 }
