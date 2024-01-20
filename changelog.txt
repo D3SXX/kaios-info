@@ -1,3 +1,6 @@
+Build 0.0.9 from 20.01.2024
+Code improvements for menu
+
 Build 0.0.8 from 19.01.2024 
 Improved "Network" tab
     - Added rows for signal, ip, frequency, hidden (ssid)

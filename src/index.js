@@ -2,7 +2,7 @@
 
 //const getSdcards = navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard');
 
-const buildInfo = ["0.0.8","19.01.2024"];
+const buildInfo = ["0.0.9","20.01.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -141,7 +141,7 @@ const controls = {
         menu.draw();
         break;
       case "Enter":
-        hideShowList();
+        menu.toggleList();
         break;
       case "SoftRight":
         nav('softright');
@@ -162,6 +162,7 @@ const controls = {
 }
 
 const menu = {
+  hideList: [],
   draw: function(col = controls.col){
     controls.updateControls(col);
     controls.resetControls("row");
@@ -172,6 +173,38 @@ const menu = {
     this.updateNavbar(data[1])
     document.getElementById("l" + controls.col).className = "hovered";
     document.getElementById(controls.row).className = "hovered"
+  },
+  toggleList: function(forceHide = undefined){
+    const splitAtRow = localeData[controls.col]["splitAtRow"];
+    if (typeof splitAtRow === 'object'){
+      let startAt = [], endAt = [];
+      for(let i = 0; i<splitAtRow.length; i+=2){
+        startAt.push(splitAtRow[i]);
+        endAt.push(splitAtRow[i+1]);
+      }
+      if (startAt.includes(controls.row)){
+        endAt = endAt[startAt.indexOf(controls.row)];
+        startAt = startAt[startAt.indexOf(controls.row)]
+        if(document.getElementById(2).style.display === "none" & forceHide != "hide"){
+          debug.print(`toggleList() - Showing elements from ${startAt} to ${endAt}`);
+          showElements("",startAt+1, endAt);
+          this.hideList = this.hideList.splice(this.hideList.indexOf(controls.row),1);
+          const oldText = document.getElementById(startAt).innerHTML;
+          document.getElementById(startAt).innerHTML = `${oldText.replace("  ↓","")}  &#8593;`
+        }
+        else{
+          debug.print(`toggleList() - hiding elements from ${startAt} to ${endAt}`);
+          hideElements("",startAt+1, endAt);
+          menu.hideList.push(controls.row);
+          let oldText = document.getElementById(startAt).innerHTML;
+          oldText = oldText.replace("  ↑","")
+          document.getElementById(startAt).innerHTML = `${oldText}  &#8595;`
+        }
+      }
+    }
+    else{
+      return;
+    }
   },
   updateNavbar: function(navbarArr){    
     const navbarContainer = document.getElementById("nav-bar");
@@ -242,10 +275,11 @@ const menu = {
         controls.rowLimit = 4;
         break;
       case 7:
+          this.hideList = []
           navbarEntries =
           `<span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="active">${localeData[7]["index"]}</span>`;
           menu = `<ul>
-          <li id="1">${localeData[7]["1"]}: ${getInfoString("network-wifi-type")}</li>
+          <li id="1">${localeData[7]["1"]}: ${getInfoString("network-wifi-type")}${this.hideList.includes(1) ? "  ↓" : "  ↑"}</li>
           <li id="2">${localeData[7]["2"]}: ${getInfoString("network-wifi-ssid")}</li>
           <li id="3">${localeData[7]["3"]}: ${getInfoString("network-wifi-speed")}</li>
           <li id="4">${localeData[7]["4"]}: ${getInfoString("network-wifi-signal")}</li>
@@ -254,7 +288,7 @@ const menu = {
           <li id="7">${localeData[7]["7"]}: ${getInfoString("network-wifi-internet")}</li>
           <li id="8">${localeData[7]["8"]}: ${getInfoString("network-wifi-hidden")}</li>
           <li id="9">${localeData[7]["9"]}: ${getInfoString("network-wifi-mac")}</li>
-          </ul>`
+          </ul>`;
           controls.rowLimit = 9;
           break;  
       }
@@ -437,28 +471,6 @@ const batteryData = {
     return returnString;  
   }  
 
-}
-
-function hideShowList(){
-  let splitAtRow = localeData[controls.col]["splitAtRow"];
-  if (typeof splitAtRow === 'number'){
-    if (controls.row == 1){
-      if(document.getElementById(2).style.display === "none"){
-        debug.print(`hideShowList() - Showing elements from 2 to ${splitAtRow}`);
-        showElements("",2, splitAtRow);
-      }
-      else{
-        debug.print(`hideShowList() - hiding elements from 2 to ${splitAtRow}`);
-        hideElements("",2, splitAtRow);
-      }
-    }
-    else if(splitAtRow+1 == controls.row){
-
-    }
-  }
-  else{
-    return;
-  }
 }
 
 function getNetworkInfo(type){
