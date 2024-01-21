@@ -1,3 +1,7 @@
+Build 0.0.10 from 21.01.2024
+Code improvements for menu
+Small code tweaks for the future updates
+
 Build 0.0.9 from 20.01.2024
 Code improvements for menu
 

@@ -2,7 +2,7 @@
 
 //const getSdcards = navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard');
 
-const buildInfo = ["0.0.9","20.01.2024"];
+const buildInfo = ["0.0.10","21.01.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -90,23 +90,49 @@ const controls = {
     let limit = type+"Limit";
       if(this[type] < this[limit]){
         this[type]++;
+        this.applySkip("increase");
       }
       else{
         this[type] = 1;
        }
-    debug.print(`controls.increase() - ${type}: ${this[type]}`);
-    scrollHide()
+      debug.print(`controls.increase() - ${type}: ${this[type]}`);
+      scrollHide();
+    
   },
   decrease: function(type){
     let limit = type+"Limit";
         if(this[type] > 1){
           this[type]--;
+          this.applySkip("decrease");
           }
           else{
             this[type] = this[limit];
           }
           debug.print(`controls.decrease() - ${type}: ${this[type]}`);
-          scrollHide()
+          scrollHide();
+  },
+  applySkip: function(type){
+    let startAt = menu.getHideListBoundaries("start");
+    let endAt = menu.getHideListBoundaries("end");
+    if (!startAt || !endAt){
+      return false;
+    }
+    let skip = false;
+    for(let i = 0; i<startAt.length; i++){
+      if (menu.hideList.includes(startAt[i])){
+        skip = [startAt[i],endAt[i]];
+      }
+    }
+    if (controls.row > skip[0] || controls.row <= skip[1]){
+      switch (type){
+        case "increase":
+          controls.row = skip[1] + 1;
+          return true;
+        case "decrease":
+          controls.row = skip[0];
+          return true;
+      }
+    }
   },
   updateLimits: function(col = this.colLimit,row = this.rowLimit, type = ""){
     let colLimit = `col${type}Limit`;
@@ -174,7 +200,7 @@ const menu = {
     document.getElementById("l" + controls.col).className = "hovered";
     document.getElementById(controls.row).className = "hovered"
   },
-  toggleList: function(forceHide = undefined){
+  getHideListBoundaries: function(type){
     const splitAtRow = localeData[controls.col]["splitAtRow"];
     if (typeof splitAtRow === 'object'){
       let startAt = [], endAt = [];
@@ -182,26 +208,45 @@ const menu = {
         startAt.push(splitAtRow[i]);
         endAt.push(splitAtRow[i+1]);
       }
+      switch (type){
+        case "start":
+          return startAt;
+        case "end":
+          return endAt;
+        default:
+          return false;
+      }
+  }
+  else{
+    return false;
+  }
+},
+  toggleList: function(forceHide = undefined){
+      let startAt = this.getHideListBoundaries("start");
+      let endAt = this.getHideListBoundaries("end");
+      if (!startAt || !endAt){
+        return;
+      }
       if (startAt.includes(controls.row)){
         endAt = endAt[startAt.indexOf(controls.row)];
         startAt = startAt[startAt.indexOf(controls.row)]
         if(document.getElementById(2).style.display === "none" & forceHide != "hide"){
           debug.print(`toggleList() - Showing elements from ${startAt} to ${endAt}`);
           showElements("",startAt+1, endAt);
-          this.hideList = this.hideList.splice(this.hideList.indexOf(controls.row),1);
-          const oldText = document.getElementById(startAt).innerHTML;
-          document.getElementById(startAt).innerHTML = `${oldText.replace("  ↓","")}  &#8593;`
+          this.hideList = this.hideList.filter(function(element) {
+            return element !== controls.row;
+          });
+          const oldText = removeAllElementsInString(document.getElementById(startAt).innerHTML,"  ↓");
+          document.getElementById(startAt).innerHTML = `${oldText}  &#8593;`
         }
         else{
           debug.print(`toggleList() - hiding elements from ${startAt} to ${endAt}`);
           hideElements("",startAt+1, endAt);
           menu.hideList.push(controls.row);
-          let oldText = document.getElementById(startAt).innerHTML;
-          oldText = oldText.replace("  ↑","")
+          let oldText = removeAllElementsInString(document.getElementById(startAt).innerHTML,"  ↑");
           document.getElementById(startAt).innerHTML = `${oldText}  &#8595;`
         }
       }
-    }
     else{
       return;
     }
@@ -288,8 +333,9 @@ const menu = {
           <li id="7">${localeData[7]["7"]}: ${getInfoString("network-wifi-internet")}</li>
           <li id="8">${localeData[7]["8"]}: ${getInfoString("network-wifi-hidden")}</li>
           <li id="9">${localeData[7]["9"]}: ${getInfoString("network-wifi-mac")}</li>
+          <li id="10">${localeData[7]["10"]}: </li>
           </ul>`;
-          controls.rowLimit = 9;
+          controls.rowLimit = 10;
           break;  
       }
   controls.colLimit = 7;
@@ -309,7 +355,11 @@ function scrollHide(){
       if(stopLimit > entriesAmount){
         stopLimit = entriesAmount; // Prevent overflow
       }
-      let startLimit = stopLimit - limit; 
+      let startLimit = stopLimit - limit;
+      if(menu.getHideListBoundaries("end")[0] >= startLimit && menu.hideList.includes(menu.getHideListBoundaries("start")[0])){
+        debug.print("scrollHide() - startLimit < hideList end position, returning");
+        return;
+      }
       debug.print(`scrollHide() - startLimit: ${startLimit} , endLimit: ${stopLimit}`) 
       showElements("", startLimit, stopLimit);
       if(scrolls == currentScrollPos){
@@ -594,6 +644,14 @@ function menuHover(row = undefined, pastRow = undefined, obj = undefined){
       currentElement.classList.add("hovered");
     }
   }
+}
+
+function removeAllElementsInString(string,element){ // No support for replaceAll before firefox 77
+  let newString = string;
+  while (newString.indexOf(element) > -1){
+    newString = newString.replace(element, "");
+  }
+  return newString;
 }
 
 

@@ -1,5 +1,5 @@
 {
-  "version": "0.0.8",
+  "version": "0.0.10",
   "name": "KaiOS Info",
   "description": "View information about your KaiOS device",
   "type": "certified",
@@ -36,7 +36,9 @@
     "video-capture":{},
     "engmode-extension": {},
 		"tcp-socket": {},
-    "wifi-manage":{"description": "needed for navigator.mozWifiManager"}
+    "wifi-manage":{"description": "needed for navigator.mozWifiManager"},
+    "mobilenetwork": {"description": "needed for navigator.mozMobileConnections"},
+    "mobileconnection": {"description": "needed for navigator.mozMobileConnections"}
   },
   "default_locale": "en-US"
 }
