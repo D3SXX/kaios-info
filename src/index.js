@@ -2,7 +2,7 @@
 
 //const getSdcards = navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard');
 
-const buildInfo = ["0.0.10","21.01.2024"];
+const buildInfo = ["0.0.11","22.01.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -112,18 +112,20 @@ const controls = {
           scrollHide();
   },
   applySkip: function(type){
+    if (menu.hideList.length == 0) return;
     let startAt = menu.getHideListBoundaries("start");
     let endAt = menu.getHideListBoundaries("end");
     if (!startAt || !endAt){
       return false;
     }
-    let skip = false;
+    let skip = [];
     for(let i = 0; i<startAt.length; i++){
       if (menu.hideList.includes(startAt[i])){
-        skip = [startAt[i],endAt[i]];
+        skip.push(startAt[i]);
+        skip.push(endAt[i])
       }
-    }
-    if (controls.row > skip[0] || controls.row <= skip[1]){
+    } 
+    if (controls.row > skip[0] && controls.row <= skip[1]){
       switch (type){
         case "increase":
           controls.row = skip[1] + 1;
@@ -333,9 +335,12 @@ const menu = {
           <li id="7">${localeData[7]["7"]}: ${getInfoString("network-wifi-internet")}</li>
           <li id="8">${localeData[7]["8"]}: ${getInfoString("network-wifi-hidden")}</li>
           <li id="9">${localeData[7]["9"]}: ${getInfoString("network-wifi-mac")}</li>
-          <li id="10">${localeData[7]["10"]}: </li>
+          <li id="10">${localeData[7]["10"]}: ${getInfoString("network-telephony-type")}</li>
+          <li id="11">${localeData[7]["11"]}: ${getInfoString("network-telephony-sim1-provider")}</li>
+          <li id="12">${localeData[7]["12"]}: ${getInfoString("network-telephony-sim1-type")}</li>
+          <li id="13">${localeData[7]["13"]}: ${getInfoString("network-telephony-sim1-signal")}</li>
           </ul>`;
-          controls.rowLimit = 10;
+          controls.rowLimit = 13;
           break;  
       }
   controls.colLimit = 7;
@@ -468,6 +473,10 @@ function getInfoString(item){
     case "network-wifi-internet":
     case "network-wifi-hidden":
     case "network-wifi-mac":
+    case "network-telephony-type":
+    case "network-telephony-sim1-provider":
+    case "network-telephony-sim1-type":
+    case "network-telephony-sim1-signal":
       return getNetworkInfo(item);
   }
   
@@ -527,6 +536,8 @@ function getNetworkInfo(type){
   let wifiData = navigator.mozWifiManager;
   let wifiConnectionData = wifiData.connectionInformation;
   let wifiStatus = wifiData.enabled ? "Enabled" : "Disabled";
+  let mobileData = navigator.mozMobileConnections;
+  let returnString = "";
   if (wifiData.connection.status == "connected"){
     switch (type){
       case "network-wifi-type":
@@ -547,6 +558,14 @@ function getNetworkInfo(type){
         return wifiData.connection.network.hidden;
       case "network-wifi-mac":
         return wifiData.macAddress;
+      case "network-telephony-type":
+        return `Cell - SIM 1 (${mobileData[0].radioState ? "Enabled" : "Disabled"})`;
+      case "network-telephony-sim1-provider":
+        return `${mobileData[0].data.network.longName || "None"}`
+      case "network-telephony-sim1-type":
+        return mobileData[0].data.type.toUpperCase();
+      case "network-telephony-sim1-signal":
+        return `${mobileData[0].signalStrength[mobileData[1].data.type+"SignalStrength"]} dBm`;
     }
   }
   else{
