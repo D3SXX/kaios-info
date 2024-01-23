@@ -2,7 +2,7 @@
 
 //const getSdcards = navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard');
 
-const buildInfo = ["0.0.11","22.01.2024"];
+const buildInfo = ["0.0.12","23.01.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -335,14 +335,30 @@ const menu = {
           <li id="7">${localeData[7]["7"]}: ${getInfoString("network-wifi-internet")}</li>
           <li id="8">${localeData[7]["8"]}: ${getInfoString("network-wifi-hidden")}</li>
           <li id="9">${localeData[7]["9"]}: ${getInfoString("network-wifi-mac")}</li>
-          <li id="10">${localeData[7]["10"]}: ${getInfoString("network-telephony-type")}</li>
-          <li id="11">${localeData[7]["11"]}: ${getInfoString("network-telephony-sim1-provider")}</li>
-          <li id="12">${localeData[7]["12"]}: ${getInfoString("network-telephony-sim1-type")}</li>
-          <li id="13">${localeData[7]["13"]}: ${getInfoString("network-telephony-sim1-signal")}</li>
-          </ul>`;
-          controls.rowLimit = 13;
+          `
+          let rowCount = 10;
+          if (getInfoString("network-telephony-amount") > 0){
+            for(let i = 0; i < getInfoString("network-telephony-amount"); i++){
+              menu += `
+              <li id="${rowCount++}">${localeData[7]["10"]}: ${getInfoString("network-telephony-type",i)}</li>
+              <li id="${rowCount++}">${localeData[7]["11"]}: ${getInfoString("network-telephony-sim-provider",i)}</li>
+              <li id="${rowCount++}">${localeData[7]["12"]}: ${getInfoString("network-telephony-sim-type",i)}</li>
+              <li id="${rowCount++}">${localeData[7]["13"]}: ${getInfoString("network-telephony-sim-signal",i)}</li>
+              <li id="${rowCount++}">${localeData[7]["14"]}: ${getInfoString("network-telephony-sim-roaming",i)}</li>
+              <li id="${rowCount++}">${localeData[7]["15"]}: ${getInfoString("network-telephony-sim-state",i)}</li>
+              <li id="${rowCount++}">${localeData[7]["16"]}: ${getInfoString("network-telephony-sim-iccid",i)}</li>
+              `;
+            }
+            menu+="</ul>"
+            
+          }
+          rowCount--;
+          controls.rowLimit = rowCount;
           break;  
       }
+
+
+
   controls.colLimit = 7;
   return [menu,navbarEntries]
 }
@@ -395,7 +411,7 @@ function showElement(id) {
   }
 }
 
-function getInfoString(item){
+function getInfoString(item, arg = undefined){
   let info,position;
   switch(item){
     default:
@@ -474,10 +490,15 @@ function getInfoString(item){
     case "network-wifi-hidden":
     case "network-wifi-mac":
     case "network-telephony-type":
-    case "network-telephony-sim1-provider":
-    case "network-telephony-sim1-type":
-    case "network-telephony-sim1-signal":
-      return getNetworkInfo(item);
+    case "network-telephony-sim-provider":
+    case "network-telephony-sim-type":
+    case "network-telephony-sim-signal":
+    case "network-telephony-sim-roaming":
+    case "network-telephony-sim-state":
+    case "network-telephony-sim-iccid":
+      return getNetworkInfo(item, arg);
+    case "network-telephony-amount":
+      return navigator.mozMobileConnections.length || 0;
   }
   
   return info;
@@ -532,13 +553,12 @@ const batteryData = {
 
 }
 
-function getNetworkInfo(type){
-  let wifiData = navigator.mozWifiManager;
-  let wifiConnectionData = wifiData.connectionInformation;
-  let wifiStatus = wifiData.enabled ? "Enabled" : "Disabled";
-  let mobileData = navigator.mozMobileConnections;
-  let returnString = "";
-  if (wifiData.connection.status == "connected"){
+function getNetworkInfo(type, sim){
+    const wifiData = navigator.mozWifiManager;
+    const wifiConnectionData = wifiData.connectionInformation;
+    const wifiStatus = wifiData.enabled ? "Enabled" : "Disabled";
+
+  if (wifiStatus == "Enabled"){
     switch (type){
       case "network-wifi-type":
         return `Wi-Fi (${wifiStatus})`;
@@ -558,18 +578,33 @@ function getNetworkInfo(type){
         return wifiData.connection.network.hidden;
       case "network-wifi-mac":
         return wifiData.macAddress;
-      case "network-telephony-type":
-        return `Cell - SIM 1 (${mobileData[0].radioState ? "Enabled" : "Disabled"})`;
-      case "network-telephony-sim1-provider":
-        return `${mobileData[0].data.network.longName || "None"}`
-      case "network-telephony-sim1-type":
-        return mobileData[0].data.type.toUpperCase();
-      case "network-telephony-sim1-signal":
-        return `${mobileData[0].signalStrength[mobileData[1].data.type+"SignalStrength"]} dBm`;
+      }
+  }
+  else{
+    return "Disabled"
+  }
+  const mobileData = navigator.mozMobileConnections[sim];
+  const mobileStatus = mobileData.radioState ? "Enabled" : "Disabled";
+  if (mobileStatus == "Enabled"){
+    switch (type){
+    case "network-telephony-type":
+      return `Cell - SIM ${sim+1} (${mobileData.radioState ? "Enabled" : "Disabled"})`;
+    case "network-telephony-sim-provider":
+      return `${mobileData.data.network.longName || "Disconnected"}`
+    case "network-telephony-sim-type":
+      return mobileData.data.type ? mobileData.data.type.toUpperCase() : "Disconnected";
+    case "network-telephony-sim-signal":
+      return mobileData.signalStrength[mobileData.data.type] ? `${mobileData.signalStrength[mobileData.data.type+"SignalStrength"]} dBm` : "Unknown";
+    case "network-telephony-sim-roaming":
+      return mobileData.data.roaming;
+    case "network-telephony-sim-state":
+      return mobileData.voice.state;
+    case "network-telephony-sim-iccid":
+      return mobileData.iccId;
     }
   }
   else{
-    return "Unknown"
+    return "Disabled"
   }
 
 }

@@ -1,3 +1,8 @@
+Build 0.0.12 from 23.01.2024
+Improved "Network" tab
+    - Added rows for  Cellular's roaming, connection state and iccid
+    - Additional lines for other SIM cards are now dynamically added to the menu
+
 Build 0.0.11 from 22.01.2024
 Improved "Network" tab
     - Added rows for Cellular's provider, standard and connection strength (only for sim 1)
