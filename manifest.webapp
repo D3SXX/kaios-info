@@ -10,8 +10,8 @@
   "theme_color": "#9b27af",
   "background_color": "#9b27af",
   "icons": {
-    "56": "/assets/icons/",
-    "112": "/assets/icons/"
+    "56": "/assets/icons/KaiOS-Info_56.png",
+    "112": "/assets/icons/KaiOS-Info_112.png"
   },
   "developer": {  
     "url": "https://github.com/D3SXX",
