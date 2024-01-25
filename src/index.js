@@ -2,7 +2,7 @@
 
 //const getSdcards = navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard');
 
-const buildInfo = ["0.0.12","23.01.2024"];
+const buildInfo = ["0.0.13","25.01.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -191,6 +191,8 @@ const controls = {
 
 const menu = {
   hideList: [],
+  enableRefresh: false,
+  timeoutID: undefined,
   draw: function(col = controls.col){
     controls.updateControls(col);
     controls.resetControls("row");
@@ -199,6 +201,11 @@ const menu = {
     data = this.getMenuData(col);
     menuContainer.innerHTML = data[0];
     this.updateNavbar(data[1])
+    this.refreshMenu();
+    try{
+      clearTimeout(timeoutID);
+    }
+    catch(e){}
     document.getElementById("l" + controls.col).className = "hovered";
     document.getElementById(controls.row).className = "hovered"
   },
@@ -253,12 +260,25 @@ const menu = {
       return;
     }
   },
+  refreshMenu: function(){
+    if(this.enableRefresh){
+      debug.print("menu.refreshMenu - Refreshing menu")
+      const data = this.getMenuData(controls.col,true);
+      for(let i = 1; i<data.length+1;i++){
+        document.getElementById(i).innerText = data[i-1];
+      }
+      this.timeoutID = setTimeout(() => {
+        this.refreshMenu();
+    }, 1000);
+    }
+  },
   updateNavbar: function(navbarArr){    
     const navbarContainer = document.getElementById("nav-bar");
     navbarContainer.innerHTML = navbarArr;
   },
-  getMenuData: function(col){
+  getMenuData: function(col, returnOnlyData = false){
     let menu = "";
+    this.enableRefresh = false;
     let navbarEntries =
     `<span id="l1" class = "active">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
     switch (col) {
@@ -313,18 +333,28 @@ const menu = {
       case 6:
         navbarEntries =
         `<span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="active">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
+        if (returnOnlyData){
+          menu = [`${localeData[6]["1"]}: ${getInfoString("battery-level")}`,`${localeData[6]["2"]}: ${getInfoString("battery-health")}`,`${localeData[6]["3"]}: ${getInfoString("battery-status")}`,`${localeData[6]["4"]}: ${getInfoString("battery-temperature")}`];
+        }
+        else{
         menu = `<ul>
         <li id="1">${localeData[6]["1"]}: ${getInfoString("battery-level")}</li>
         <li id="2">${localeData[6]["2"]}: ${getInfoString("battery-health")}</li>
         <li id="3">${localeData[6]["3"]}: ${getInfoString("battery-status")}</li>
         <li id="4">${localeData[6]["4"]}: ${getInfoString("battery-temperature")}</li>
         </ul>`
+      }
         controls.rowLimit = 4;
+        this.enableRefresh = true;
         break;
       case 7:
           this.hideList = []
           navbarEntries =
           `<span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="active">${localeData[7]["index"]}</span>`;
+          if (returnOnlyData){
+            menu = [`${localeData[7]["1"]}: ${getInfoString("network-wifi-type")}${this.hideList.includes(1) ? "  ↓" : "  ↑"}`,`${localeData[7]["2"]}: ${getInfoString("network-wifi-ssid")}`,`${localeData[7]["3"]}: ${getInfoString("network-wifi-speed")}`,`${localeData[7]["4"]}: ${getInfoString("network-wifi-signal")}`,`${localeData[7]["5"]}: ${getInfoString("network-wifi-ip")}`,`${localeData[7]["6"]}: ${getInfoString("network-wifi-frequency")}`,`${localeData[7]["7"]}: ${getInfoString("network-wifi-internet")}`,`${localeData[7]["8"]}: ${getInfoString("network-wifi-hidden")}`,`${localeData[7]["9"]}: ${getInfoString("network-wifi-mac")}`]
+          }
+          else{
           menu = `<ul>
           <li id="1">${localeData[7]["1"]}: ${getInfoString("network-wifi-type")}${this.hideList.includes(1) ? "  ↓" : "  ↑"}</li>
           <li id="2">${localeData[7]["2"]}: ${getInfoString("network-wifi-ssid")}</li>
@@ -336,9 +366,21 @@ const menu = {
           <li id="8">${localeData[7]["8"]}: ${getInfoString("network-wifi-hidden")}</li>
           <li id="9">${localeData[7]["9"]}: ${getInfoString("network-wifi-mac")}</li>
           `
+          }
           let rowCount = 10;
           if (getInfoString("network-telephony-amount") > 0){
             for(let i = 0; i < getInfoString("network-telephony-amount"); i++){
+              if (returnOnlyData){
+                menu.push(`${localeData[7]["10"]}: ${getInfoString("network-telephony-type",i)}`);
+                menu.push(`${localeData[7]["11"]}: ${getInfoString("network-telephony-sim-provider",i)}`);
+                menu.push(`${localeData[7]["12"]}: ${getInfoString("network-telephony-sim-type",i)}`);
+                menu.push(`${localeData[7]["13"]}: ${getInfoString("network-telephony-sim-signal",i)}`);
+                menu.push(`${localeData[7]["14"]}: ${getInfoString("network-telephony-sim-roaming",i)}`);
+                menu.push(`${localeData[7]["15"]}: ${getInfoString("network-telephony-sim-state",i)}`);
+                menu.push(`${localeData[7]["16"]}: ${getInfoString("network-telephony-sim-iccid",i)}`);
+                rowCount += 7;
+              }
+              else{
               menu += `
               <li id="${rowCount++}">${localeData[7]["10"]}: ${getInfoString("network-telephony-type",i)}</li>
               <li id="${rowCount++}">${localeData[7]["11"]}: ${getInfoString("network-telephony-sim-provider",i)}</li>
@@ -348,18 +390,19 @@ const menu = {
               <li id="${rowCount++}">${localeData[7]["15"]}: ${getInfoString("network-telephony-sim-state",i)}</li>
               <li id="${rowCount++}">${localeData[7]["16"]}: ${getInfoString("network-telephony-sim-iccid",i)}</li>
               `;
+              }
             }
-            menu+="</ul>"
-            
+            if (!returnOnlyData){
+              menu+="</ul>"
+            }
           }
           rowCount--;
           controls.rowLimit = rowCount;
+          this.enableRefresh = true;
           break;  
       }
-
-
-
   controls.colLimit = 7;
+  if (returnOnlyData) return menu;
   return [menu,navbarEntries]
 }
 }
@@ -592,9 +635,18 @@ function getNetworkInfo(type, sim){
     case "network-telephony-sim-provider":
       return `${mobileData.data.network.longName || "Disconnected"}`
     case "network-telephony-sim-type":
-      return mobileData.data.type ? mobileData.data.type.toUpperCase() : "Disconnected";
+      let activeType = mobileData.data.type ? mobileData.data.type.toUpperCase() : undefined;
+      if(!activeType){
+        activeType = mobileData.data.network.state === "connected" ? "GSM" : "Disconnected"; // if connected assume that it is GSM
+      }
+      return activeType;
     case "network-telephony-sim-signal":
-      return mobileData.signalStrength[mobileData.data.type] ? `${mobileData.signalStrength[mobileData.data.type+"SignalStrength"]} dBm` : "Unknown";
+      // GSM Signal strength described in section 8.5 (ETSI TS 127 007 V6.8.0) https://www.etsi.org/deliver/etsi_ts/127000_127099/127007/06.08.00_60/ts_127007v060800p.pdf
+      let activeSignal = mobileData.signalStrength.lteSignalStrength === 99 ? undefined : `${mobileData.signalStrength.lteSignalStrength} dBm`;
+      if (!activeSignal){
+        activeSignal = mobileData.signalStrength.gsmSignalStrength === 99 ? "Unknown" : `${gsmSignalStrengthToDbm(mobileData.signalStrength.gsmSignalStrength)} dBm (${Math.round(mobileData.signalStrength.gsmSignalStrength/31*100)}%)`
+      }
+      return activeSignal;
     case "network-telephony-sim-roaming":
       return mobileData.data.roaming;
     case "network-telephony-sim-state":
@@ -606,7 +658,22 @@ function getNetworkInfo(type, sim){
   else{
     return "Disabled"
   }
-
+  function gsmSignalStrengthToDbm(gsmSignalStrength) {
+    if (gsmSignalStrength === 0) {
+      return -113;
+    } else if (gsmSignalStrength === 1) {
+      return -111;
+    } else if (gsmSignalStrength >= 2 && gsmSignalStrength <= 30) {
+      let x1 = 2, y1 = -109;
+      let x2 = 30, y2 = -53;
+      return y1 + (gsmSignalStrength - x1) * (y2 - y1) / (x2 - x1);
+    } else if (gsmSignalStrength === 31) {
+      return -51;
+    } else {
+      return NaN;
+    }
+  
+}
 }
 
 function getCameraInfo(){
