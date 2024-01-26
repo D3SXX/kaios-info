@@ -2,7 +2,7 @@
 
 //const getSdcards = navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard');
 
-const buildInfo = ["0.0.13","25.01.2024"];
+const buildInfo = ["0.0.14","26.01.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -13,6 +13,7 @@ fetch("src/locale.json")
 
 function initProgram(data){
   batteryData.init();
+  cameraData.init();
   const userLocale = navigator.language;
   localeData = data[userLocale];
   if(!localeData){
@@ -278,6 +279,7 @@ const menu = {
   },
   getMenuData: function(col, returnOnlyData = false){
     let menu = "";
+    let rowCount = 1;
     this.enableRefresh = false;
     let navbarEntries =
     `<span id="l1" class = "active">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
@@ -324,11 +326,25 @@ const menu = {
       case 5:
         navbarEntries =
         `<span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="active">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
-        menu = `<ul>
-        <li id="1">${localeData[5]["1"]}: ${getInfoString("camera")}</li>
-        <li id="2">${localeData[5]["2"]}: ${getInfoString("camera-resolution")}</li>
-        </ul>`
-        controls.rowLimit = 2;
+        menu = "<ul>"
+        const camerasAmount = cameraData.camerasList.length || 0;
+        if (camerasAmount > 0){
+          for(let i = 0; i<camerasAmount; i++){
+              menu += `
+              <li id="${rowCount++}">${localeData[5]["1"]}: ${getInfoString("camera-id",i)}</li>
+              <li id="${rowCount++}">${localeData[5]["2"]}: ${getInfoString("camera-name",i)}</li>
+              <li id="${rowCount++}">${localeData[5]["3"]}: ${getInfoString("camera-photo-resolution",i)}</li>
+              <li id="${rowCount++}">${localeData[5]["4"]}: ${getInfoString("camera-photo-focal",i)}</li>
+              <li id="${rowCount++}">${localeData[5]["5"]}: ${getInfoString("camera-video-resolution",i)}</li>
+              <li id="${rowCount++}">${localeData[5]["6"]}: ${getInfoString("camera-video-bitrate",i)}</li>
+              <li id="${rowCount++}">${localeData[5]["7"]}: ${getInfoString("camera-video-framerate",i)}</li>
+              <li id="${rowCount++}">${localeData[5]["8"]}: ${getInfoString("camera-video-codec",i)}</li>
+              `
+          }
+          rowCount -= 1;
+        }
+        menu += "</ul>"
+        controls.rowLimit = rowCount;
         break;
       case 6:
         navbarEntries =
@@ -367,7 +383,7 @@ const menu = {
           <li id="9">${localeData[7]["9"]}: ${getInfoString("network-wifi-mac")}</li>
           `
           }
-          let rowCount = 10;
+          rowCount = 10;
           if (getInfoString("network-telephony-amount") > 0){
             for(let i = 0; i < getInfoString("network-telephony-amount"); i++){
               if (returnOnlyData){
@@ -511,13 +527,17 @@ function getInfoString(item, arg = undefined){
       info = `~${speed.toFixed(2)} GHz`;
       break;
     case "gpu":
-      return getGpuInfo(item);
     case "gpu-man":
       return getGpuInfo(item);
-    case "camera":
-      return getCameraInfo();
-    case "camera-resolution":
-      return getResolutionInfo();
+    case "camera-name":
+    case "camera-id":
+    case "camera-photo-resolution":
+    case "camera-photo-focal":
+    case "camera-video-resolution":
+    case "camera-video-bitrate":
+    case "camera-video-framerate":
+    case "camera-video-codec":
+      return cameraData.get(item,arg);
     case "battery-level":
     case "battery-health":
     case "battery-status":
@@ -676,48 +696,46 @@ function getNetworkInfo(type, sim){
 }
 }
 
-function getCameraInfo(){
-  if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
-    navigator.mediaDevices.enumerateDevices()
-      .then(devices => {
-        const cameras = devices.filter(device => device.kind === 'videoinput');
-        
-        cameras.forEach(camera => {
-          console.log(camera.label )
-          return camera.label || "Unknown";
+const cameraData = {
+  cameraInfo: [],
+  camerasList: undefined,
+  init: function(){
+    this.camerasList = navigator.mozCameras.getListOfCameras();
+    if (this.camerasList.length > 0){
+      for(let i = 0; i < this.camerasList.length; i++){
+        navigator.mozCameras.getCamera(this.camerasList[i]).then(function(result){
+          cameraData.cameraInfo.push(result);
         });
-      })
-      .catch(err => {
-        console.error('Error enumerating devices:', err);
-      });
-  } else {
-    return "Unknown"
-  }
-}
-
-function getResolutionInfo(){
-  let constraints = { 
-    audio: true, 
-    video: { 
-        width: { ideal: 1920 }, 
-        height: { ideal: 1080 } 
+      }
+      return true;
     }
-};
-  navigator.mediaDevices.getUserMedia(constraints)
-  .then(stream => {
-    console.log(stream)
-      const settings = stream.getVideoTracks();
-      console.log(settings)
-      console.log('Estimated Camera Resolution:');
-      console.log('Width:', settings.width || 'Not available');
-      console.log('Height:', settings.height || 'Not available');
-
-      // Stop the stream when you're done with it
-      stream.getTracks().forEach(track => track.stop());
-  })
-  .catch(error => {
-    console.error('Error accessing camera:', error);
-  });
+    else{
+      return false;
+    }
+  },
+  get: function(type,currentCameras){
+    const camera = this.cameraInfo[currentCameras];
+    const currentRecorder = this.cameraInfo[currentCameras].configuration.recorderProfile;
+    const recorder = this.cameraInfo[currentCameras].camera.capabilities.recorderProfiles[currentRecorder];
+    switch(type){
+      case "camera-name":
+        return this.camerasList[currentCameras];
+      case "camera-id":
+        return camera.camera.id;
+      case "camera-photo-resolution":
+        return `${(camera.camera.capabilities.pictureSizes[0].width*camera.camera.capabilities.pictureSizes[0].height*1e-6).toFixed(2)} MP (${camera.camera.capabilities.pictureSizes[0].width}x${camera.camera.capabilities.pictureSizes[0].height})`;
+      case "camera-photo-focal":
+        return `${camera.camera.focalLength.toFixed(2)} mm`;
+      case "camera-video-resolution":
+        return `${recorder.name} (${recorder.video.width}x${recorder.video.height})`;
+      case "camera-video-bitrate":
+        return `${recorder.video.bitsPerSecond * 1e-6} Mbps`;
+      case "camera-video-framerate":
+        return recorder.video.framesPerSecond;
+      case "camera-video-codec":
+        return recorder.video.codec;
+      }
+  }
 }
 
 function getGpuInfo(type){

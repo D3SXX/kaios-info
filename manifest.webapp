@@ -1,5 +1,5 @@
 {
-  "version": "0.0.13",
+  "version": "0.0.14",
   "name": "KaiOS Info",
   "description": "View information about your KaiOS device",
   "type": "certified",
@@ -38,7 +38,8 @@
 		"tcp-socket": {},
     "wifi-manage":{"description": "needed for navigator.mozWifiManager"},
     "mobilenetwork": {"description": "needed for navigator.mozMobileConnections"},
-    "mobileconnection": {"description": "needed for navigator.mozMobileConnections"}
+    "mobileconnection": {"description": "needed for navigator.mozMobileConnections"},
+    "bluetooth":{"description": "needed for navigator.mozBluetooth"}
   },
   "default_locale": "en-US"
 }

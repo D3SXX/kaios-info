@@ -1,3 +1,8 @@
+Build 0.0.14 from 26.01.2024
+Improved "Camera" tab
+    - Fixed rows for camera's name and resolution
+    - Added rows for camera's id, focal length, video resolution, bitrate, frametime and codec 
+
 Build 0.0.13 from 25.01.2024
 Improved "Network" tab
     - The signal strength row now correctly shows the signal strength for GSM
