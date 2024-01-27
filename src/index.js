@@ -2,7 +2,7 @@
 
 //const getSdcards = navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard');
 
-const buildInfo = ["0.0.14","26.01.2024"];
+const buildInfo = ["0.0.15","27.01.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -12,8 +12,9 @@ fetch("src/locale.json")
   .then((data) => initProgram(data));
 
 function initProgram(data){
-  batteryData.init();
-  cameraData.init();
+  batteryData.initStatus = batteryData.init();
+  cameraData.initStatus = cameraData.init();
+  navigator.mozBluetooth; // Initialize mozBluetooth
   const userLocale = navigator.language;
   localeData = data[userLocale];
   if(!localeData){
@@ -149,6 +150,18 @@ const controls = {
     this.row = row;
     debug.print(`controls.updateControls() - col: ${this.col} row: ${this.row}`);
   },
+  handleEnter: function(){
+    switch(this.col){
+      case 7:
+        menu.toggleList();
+        break;
+      case 8:
+        toggleBluetooth();
+        menu.refreshMenu();
+        break;
+    }
+
+  },
   handleKeydown: function(e) {
     debug.print(`${e.key} triggered`);
     let pastRow = controls.row;
@@ -170,7 +183,7 @@ const controls = {
         menu.draw();
         break;
       case "Enter":
-        menu.toggleList();
+        controls.handleEnter();
         break;
       case "SoftRight":
         nav('softright');
@@ -327,6 +340,7 @@ const menu = {
         navbarEntries =
         `<span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="active">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
         menu = "<ul>"
+        if (cameraData.initStatus){
         const camerasAmount = cameraData.camerasList.length || 0;
         if (camerasAmount > 0){
           for(let i = 0; i<camerasAmount; i++){
@@ -343,6 +357,13 @@ const menu = {
           }
           rowCount -= 1;
         }
+        else{
+          menu += `<li id="${rowCount++}">${localeData[0]["errorOnEmptyList"]}</li>`
+        }
+      }
+      else{
+        menu += `<li id="${rowCount++}">${localeData[0]["errorOnApi"]}</li>`
+      }
         menu += "</ul>"
         controls.rowLimit = rowCount;
         break;
@@ -366,7 +387,7 @@ const menu = {
       case 7:
           this.hideList = []
           navbarEntries =
-          `<span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="active">${localeData[7]["index"]}</span>`;
+          `<span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="active">${localeData[7]["index"]}</span><span id="l8" class="notactive">${localeData[8]["index"]}</span>`;
           if (returnOnlyData){
             menu = [`${localeData[7]["1"]}: ${getInfoString("network-wifi-type")}${this.hideList.includes(1) ? "  ↓" : "  ↑"}`,`${localeData[7]["2"]}: ${getInfoString("network-wifi-ssid")}`,`${localeData[7]["3"]}: ${getInfoString("network-wifi-speed")}`,`${localeData[7]["4"]}: ${getInfoString("network-wifi-signal")}`,`${localeData[7]["5"]}: ${getInfoString("network-wifi-ip")}`,`${localeData[7]["6"]}: ${getInfoString("network-wifi-frequency")}`,`${localeData[7]["7"]}: ${getInfoString("network-wifi-internet")}`,`${localeData[7]["8"]}: ${getInfoString("network-wifi-hidden")}`,`${localeData[7]["9"]}: ${getInfoString("network-wifi-mac")}`]
           }
@@ -415,9 +436,39 @@ const menu = {
           rowCount--;
           controls.rowLimit = rowCount;
           this.enableRefresh = true;
-          break;  
+          break;
+      case 8:
+      navbarEntries =
+          `<span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span><span id="l8" class="active">${localeData[8]["index"]}</span>`;
+          if (getInfoString("bluetooth")){
+            if(returnOnlyData){
+              menu = []
+              menu.push(`${localeData[8]["1"]}: ${getInfoString("bluetooth-status")}`,`${localeData[8]["2"]}: ${getInfoString("bluetooth-name")}`,`${localeData[8]["3"]}: ${getInfoString("bluetooth-address")}`,`${localeData[8]["4"]}: ${getInfoString("bluetooth-discoverable")}`,`${localeData[8]["5"]}: ${getInfoString("bluetooth-discovering")}`);
+            }
+            else{
+            menu += `<ul>
+            <li id="1">${localeData[8]["1"]}: ${getInfoString("bluetooth-status")}</li>
+            <li id="2">${localeData[8]["2"]}: ${getInfoString("bluetooth-name")}</li>
+            <li id="3">${localeData[8]["3"]}: ${getInfoString("bluetooth-address")}</li>
+            <li id="4">${localeData[8]["4"]}: ${getInfoString("bluetooth-discoverable")}</li>
+            <li id="5">${localeData[8]["5"]}: ${getInfoString("bluetooth-discovering")}</li>
+            </ul> `;
+            }
+            controls.rowLimit = 5;
+          }
+          else{
+            if(returnOnlyData){
+              menu = [`${localeData[0]["errorOnApi"]}`];
+            }
+            else{
+            menu += `<ul><li id="1">${localeData[0]["errorOnApi"]}</li></ul>`;
+          }
+            controls.rowLimit = 1;
+          }
+          this.enableRefresh = true;
+        break;  
       }
-  controls.colLimit = 7;
+  controls.colLimit = 8;
   if (returnOnlyData) return menu;
   return [menu,navbarEntries]
 }
@@ -463,7 +514,7 @@ function showElement(id) {
   }
   function hideElements(obj, startUp, endUp) {
     debug.print(`scrollHide() - hideElements() - from ${startUp} upto ${endUp}`);
-    if(startUp != endUp){
+    if(startUp != endUp || startUp == 1){
     for (let i = startUp; i <= endUp; i++) {
       hideElement(obj + i);
     }
@@ -561,7 +612,25 @@ function getInfoString(item, arg = undefined){
     case "network-telephony-sim-iccid":
       return getNetworkInfo(item, arg);
     case "network-telephony-amount":
-      return navigator.mozMobileConnections.length || 0;
+      if(navigator.mozMobileConnections){
+        return navigator.mozMobileConnections.length;
+      }
+      else{
+        return 0;
+      }
+    case "bluetooth-status":
+    case "bluetooth-name":
+    case "bluetooth-address":
+    case "bluetooth-discoverable":
+    case "bluetooth-discovering":
+      return getBluetoothInfo(item);
+    case "bluetooth":
+      if (navigator.mozBluetooth === undefined){
+        return false;
+      }
+      else{
+        return true;
+      }
   }
   
   return info;
@@ -569,12 +638,21 @@ function getInfoString(item, arg = undefined){
 
 const batteryData = {
   data: null,
+  initStatus: false,
   init: function(){
+    if (!navigator.getBattery){
+      return false;
+    }
     navigator.getBattery().then(function(result){
       batteryData.data = result;
+      
     });
+    return true;
   },
   get: function(type){
+    if (!this.initStatus){
+      return false;
+    }
     let returnString = this.data[type];
     if (type == "level"){
       returnString = `${parseFloat(returnString)*100}%`;
@@ -616,8 +694,43 @@ const batteryData = {
 
 }
 
+function getBluetoothInfo(type){
+  const bluetoothData = navigator.mozBluetooth.defaultAdapter;
+  switch(type){
+    case "bluetooth-status":
+      return bluetoothData.state;
+    case "bluetooth-name":
+      return bluetoothData.name;
+    case "bluetooth-address":
+      return bluetoothData.address;
+    case "bluetooth-discoverable":
+      return bluetoothData.discoverable;
+    case "bluetooth-discovering":
+      return bluetoothData.discovering;
+  }
+}
+
+function toggleBluetooth(){
+  const bluetoothData = navigator.mozBluetooth;
+  if(bluetoothData === undefined){
+    debug.print("toggleBluetooth() - No access to API")
+    return false;
+  }
+  if(bluetoothData.defaultAdapter.state === "disabled"){
+    bluetoothData.defaultAdapter.enable();
+    debug.print("toggleBluetooth() - Bluetooth enabled")
+  }
+  else{
+    bluetoothData.defaultAdapter.disable();
+    debug.print("toggleBluetooth() - Bluetooth disabled")
+  }
+  return true;
+}
+
 function getNetworkInfo(type, sim){
+    if (type.includes("wifi")){
     const wifiData = navigator.mozWifiManager;
+    if (wifiData === undefined) return false;
     const wifiConnectionData = wifiData.connectionInformation;
     const wifiStatus = wifiData.enabled ? "Enabled" : "Disabled";
 
@@ -646,6 +759,9 @@ function getNetworkInfo(type, sim){
   else{
     return "Disabled"
   }
+  }
+  else{
+    if (navigator.mozMobileConnections === undefined) return false;
   const mobileData = navigator.mozMobileConnections[sim];
   const mobileStatus = mobileData.radioState ? "Enabled" : "Disabled";
   if (mobileStatus == "Enabled"){
@@ -678,6 +794,7 @@ function getNetworkInfo(type, sim){
   else{
     return "Disabled"
   }
+}
   function gsmSignalStrengthToDbm(gsmSignalStrength) {
     if (gsmSignalStrength === 0) {
       return -113;
@@ -699,7 +816,11 @@ function getNetworkInfo(type, sim){
 const cameraData = {
   cameraInfo: [],
   camerasList: undefined,
+  initStatus: false,
   init: function(){
+    if (!navigator.mozCameras){
+      return false;
+    }
     this.camerasList = navigator.mozCameras.getListOfCameras();
     if (this.camerasList.length > 0){
       for(let i = 0; i < this.camerasList.length; i++){
@@ -714,6 +835,9 @@ const cameraData = {
     }
   },
   get: function(type,currentCameras){
+    if (!this.initStatus){
+      return false;
+    }
     const camera = this.cameraInfo[currentCameras];
     const currentRecorder = this.cameraInfo[currentCameras].configuration.recorderProfile;
     const recorder = this.cameraInfo[currentCameras].camera.capabilities.recorderProfiles[currentRecorder];
