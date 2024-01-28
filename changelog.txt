@@ -1,3 +1,6 @@
+Build 0.0.16 from 28.01.2024
+Improve code
+
 Build 0.0.15 from 27.01.2024
 Added "Bluetooth" tab
     - Added rows for status, bluetooth name, address, discoverable status and discovering status
