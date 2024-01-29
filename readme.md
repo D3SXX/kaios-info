@@ -1,4 +1,4 @@
-# KaiOS Backup
+# KaiOS Info
 
 ## Screenshots
 

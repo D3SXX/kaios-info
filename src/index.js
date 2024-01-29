@@ -2,7 +2,7 @@
 
 //const getSdcards = navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard');
 
-const buildInfo = ["0.0.16","28.01.2024"];
+const buildInfo = ["0.0.17","29.01.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -12,6 +12,7 @@ fetch("src/locale.json")
   .then((data) => initProgram(data));
 
 function initProgram(data){
+  systemData.init(); // make a better initialization for program later
   batteryData.initStatus = batteryData.init();
   cameraData.initStatus = cameraData.init();
   navigator.mozBluetooth; // Initialize mozBluetooth
@@ -52,7 +53,7 @@ const debug = {
       }
     }
   },
-  show: function() {
+  show: function(key="") {
     if (this.enableDebug) {
       const debugElement = document.getElementById("debug");
       debugElement.innerHTML = `nav: ${key} row: ${controls.row} (${controls.rowLimit}) col: ${controls.col}`;
@@ -186,20 +187,17 @@ const controls = {
         controls.handleEnter();
         break;
       case "SoftRight":
-        nav('softright');
         break;
       case "SoftLeft":
-        nav('softleft');
         break;
       case "#":
         debug.toggle()
         break;
       case "Backspace":
-        if(closeMenus()){
-          e.preventDefault();
-        }
+        close();
         break;
     }
+    debug.show(e.key);
   }
 }
 
@@ -219,9 +217,11 @@ const menu = {
     this.updateNavbar(data[1])
     this.refreshMenu();
     try{
-      clearTimeout(timeoutID);
+      clearTimeout(this.timeoutID);
     }
-    catch(e){}
+    catch(e){
+      debug.print("menu.draw() - Refreshing menu for the first time");
+    }
     document.getElementById("l" + controls.col).className = "hovered";
     document.getElementById(controls.row).className = "hovered"
   },
@@ -301,12 +301,14 @@ const menu = {
     switch (col) {
       case 1:
         menu = `<ul>
-        <li id="1">${localeData[1]["1"]}: ${getInfoString("model")}</li>
-        <li id="2">${localeData[1]["2"]}: KaiOS ${getInfoString("os")}</li>
-        <li id="3">${localeData[1]["3"]}: ${getInfoString("firefox")}</li>
+        <li id="1">${localeData[1]["1"]}: ${getInfoString("system-model")}</li>
+        <li id="2">${localeData[1]["2"]}: ${getInfoString("system-os")}</li>
+        <li id="3">${localeData[1]["3"]}: ${getInfoString("system-firefox")}</li>
+        <li id="4">${localeData[1]["4"]}: ${getInfoString("system-ram")}</li>
+        <li id="5">${localeData[1]["5"]}: ${getInfoString("system-developer")}</li>
         </ul>
     `
-      controls.rowLimit = 3;
+      controls.rowLimit = 5;
     break;
       case 2:
         navbarEntries =
@@ -548,27 +550,20 @@ function showElement(id) {
 }
 
 function getInfoString(item, arg = undefined){
-  let info,position;
+  let info;
   switch(item){
     default:
       return "Unknown"
-    case "model":
-      info = navigator.userAgent;
-      position = info.search(";") + 1;
-      info = info.substring(position);
-      info = info.substring(0,info.search(";")).split("_").join(" ");
-      break;
-    case "os":
-      info = navigator.userAgent;
-      position = info.search("KAIOS") + "KAIOS ".length;
-      info = info.substring(position);
-      break;
-    case "firefox":
-      info = navigator.userAgent;
-      position = info.search("Firefox") + "Firefox ".length;
-      info = info.substring(position);
-      info = info.substring(0,info.search(" "));
-      break;
+    case "system-model":
+      return systemData.model;
+    case "system-os":
+      return systemData.osVersion;
+    case "system-firefox":
+      return systemData.firefoxVersion;
+    case "system-ram":
+      return `${systemData.ram} MB`;
+    case "system-developer":
+      return systemData.developerMode;
     case "resolution":
       info = `${window.screen.height}x${window.screen.width}`
       break;
@@ -718,6 +713,44 @@ const batteryData = {
     }
     return returnString;  
   }  
+
+}
+
+
+const systemData = {
+  data:[],
+  init: function(){
+    const userAgent = navigator.userAgent;
+    if(navigator.hasFeature){
+      navigator.getFeature("hardware.memory").then(function(result){
+        systemData.ram = result;
+      });
+      navigator.getFeature("dom.apps.developer_mode").then(function(result){
+        systemData.developerMode = result;
+      });
+    }
+    let deviceStorages = navigator.getDeviceStorages("sdcard") || [];
+    if(deviceStorages.length > 0){
+      this.memoryName = [];
+      this.memorySize = [];
+      this.memoryUsedSpace = [];
+      for(let i = 0; i<deviceStorages.length; i++){
+        this.memoryName.push(deviceStorages[i].storageName);
+        deviceStorages[i].freeSpace().then(function(result){
+          systemData.memorySize.push(result);
+        });
+        deviceStorages[i].usedSpace().then(function(result){
+          systemData.memoryUsedSpace.push(result);
+        });
+      }
+    }
+    const nameString = userAgent.substring(userAgent.search(";") + 1)
+    this.model = nameString.substring(0,nameString.search(";")).split("_").join(" ");
+    this.osVersion = "KaiOS " + userAgent.substring(userAgent.toUpperCase().search("KAIOS") + 6);
+    const firefoxString = userAgent.substring(userAgent.search("Firefox") + 8);
+    this.firefoxVersion = firefoxString.substring(0,firefoxString.search(" "));
+  }
+
 
 }
 

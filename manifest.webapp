@@ -1,6 +1,7 @@
 {
-  "version": "0.0.16",
+  "version": "0.0.17",
   "name": "KaiOS Info",
+  "subtitle": "View information about your KaiOS device",
   "description": "View information about your KaiOS device",
   "type": "certified",
   "launch_path": "/index.html",
@@ -13,6 +14,9 @@
     "56": "/assets/icons/KaiOS-Info_56.png",
     "112": "/assets/icons/KaiOS-Info_112.png"
   },
+  "categories":[
+    "utilities"
+  ],
   "developer": {  
     "url": "https://github.com/D3SXX",
     "name": "D3SXX"
@@ -39,7 +43,8 @@
     "wifi-manage":{"description": "needed for navigator.mozWifiManager"},
     "mobilenetwork": {"description": "needed for navigator.mozMobileConnections"},
     "mobileconnection": {"description": "needed for navigator.mozMobileConnections"},
-    "bluetooth":{"description": "needed for navigator.mozBluetooth"}
+    "bluetooth":{"description": "needed for navigator.mozBluetooth"},
+    "feature-detection":{"description": "Needed for navigator.getFeature and navigator.hasFeature"}
   },
   "default_locale": "en-US"
 }
