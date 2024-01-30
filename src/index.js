@@ -1,8 +1,6 @@
 "use strict";
 
-//const getSdcards = navigator.b2g ? navigator.b2g.getDeviceStorages('sdcard') : navigator.getDeviceStorages('sdcard');
-
-const buildInfo = ["0.0.17","29.01.2024"];
+const buildInfo = ["0.0.18", "30.01.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -11,41 +9,43 @@ fetch("src/locale.json")
   })
   .then((data) => initProgram(data));
 
-function initProgram(data){
+function initProgram(data) {
   systemData.init(); // make a better initialization for program later
+  displayData.init();
+  cpuData.init();
+  storageData.init();
   batteryData.initStatus = batteryData.init();
   cameraData.initStatus = cameraData.init();
   navigator.mozBluetooth; // Initialize mozBluetooth
   const userLocale = navigator.language;
   localeData = data[userLocale];
-  if(!localeData){
+  if (!localeData) {
     localeData = data["en-US"];
   }
-  console.log(`KaiOS Info ver. ${buildInfo[0]} initialized`)
-  menu.draw(1)
+  console.log(`KaiOS Info ver. ${buildInfo[0]} initialized`);
+  menu.draw(1);
 }
 
 const debug = {
   enableDebug: false,
-  toggle: function(){
+  toggle: function () {
     this.enableDebug = !this.enableDebug;
     this.print("Debug output activated");
     const debugElement = document.getElementById("debug");
-    if(this.enableDebug){
-      debugElement.innerHTML = 'Debug output activated';
-    }
-    else{
-      debugElement.innerHTML = '';
+    if (this.enableDebug) {
+      debugElement.innerHTML = "Debug output activated";
+    } else {
+      debugElement.innerHTML = "";
     }
   },
-  print: function(msg,flag = null) {
-    if(this.enableDebug){
-      switch(flag){
+  print: function (msg, flag = null) {
+    if (this.enableDebug) {
+      switch (flag) {
         case "error":
           console.error(msg);
           break;
         case "warning":
-          console.warn(msg)
+          console.warn(msg);
           break;
         default:
           console.log(msg);
@@ -53,14 +53,13 @@ const debug = {
       }
     }
   },
-  show: function(key="") {
+  show: function (key = "") {
     if (this.enableDebug) {
       const debugElement = document.getElementById("debug");
       debugElement.innerHTML = `nav: ${key} row: ${controls.row} (${controls.rowLimit}) col: ${controls.col}`;
     }
-  }
-}
-
+  },
+};
 
 const controls = {
   row: 1,
@@ -71,11 +70,11 @@ const controls = {
   colMenuLimit: 0,
   rowLimit: 0,
   colLimit: 0,
-  scrollLimit: 0,  
-  resetControls: function (type = "", extra = ""){
-    let col = `col${extra}`
-    let row = `row${extra}`
-    switch (type){
+  scrollLimit: 0,
+  resetControls: function (type = "", extra = "") {
+    let col = `col${extra}`;
+    let row = `row${extra}`;
+    switch (type) {
       case "col":
         this[col] = 1;
         break;
@@ -83,76 +82,80 @@ const controls = {
         this[row] = 1;
         break;
       default:
-        this[col] = 1
+        this[col] = 1;
         this[row] = 1;
         break;
     }
     debug.print(`controls.resetControls() - ${type + extra} - reset`);
   },
-  increase: function (type){
-    let limit = type+"Limit";
-      if(this[type] < this[limit]){
-        this[type]++;
-        this.applySkip("increase");
-      }
-      else{
-        this[type] = 1;
-       }
-      debug.print(`controls.increase() - ${type}: ${this[type]}`);
-      scrollHide();
-    
+  increase: function (type) {
+    let limit = type + "Limit";
+    if (this[type] < this[limit]) {
+      this[type]++;
+      this.applySkip("increase");
+    } else {
+      this[type] = 1;
+    }
+    debug.print(`controls.increase() - ${type}: ${this[type]}`);
+    scrollHide();
   },
-  decrease: function(type){
-    let limit = type+"Limit";
-        if(this[type] > 1){
-          this[type]--;
-          this.applySkip("decrease");
-          }
-          else{
-            this[type] = this[limit];
-          }
-          debug.print(`controls.decrease() - ${type}: ${this[type]}`);
-          scrollHide();
+  decrease: function (type) {
+    let limit = type + "Limit";
+    if (this[type] > 1) {
+      this[type]--;
+      this.applySkip("decrease");
+    } else {
+      this[type] = this[limit];
+    }
+    debug.print(`controls.decrease() - ${type}: ${this[type]}`);
+    scrollHide();
   },
-  applySkip: function(type){
-    if (menu.activeHideList.length == 0) return;
+  applySkip: function (type) {
+    if (menu.hideList.length == 0) return;
     let startAt = menu.getHideListBoundaries("start");
     let endAt = menu.getHideListBoundaries("end");
-    if (!startAt || !endAt){
+    if (!startAt || !endAt) {
       return false;
     }
     let skip = [];
-    for(let i = 0; i<startAt.length; i++){
-      if (menu.activeHideList.includes(startAt[i])){
+    for (let i = 0; i < startAt.length; i++) {
+      if (menu.hideList.includes(startAt[i])) {
         skip.push(startAt[i]);
         skip.push(endAt[i]);
       }
-    } 
-    if (controls.row > skip[0] && controls.row <= skip[1]){
-      switch (type){
-        case "increase":
-          controls.row = skip[1] + 1;
-          return true;
-        case "decrease":
-          controls.row = skip[0];
-          return true;
+    }
+    for (let i = 0; i < skip.length; i += 2) {
+      if (controls.row > skip[i] && controls.row <= skip[i + 1]) {
+        console.log(skip[i], skip[i + 1], controls.row);
+        switch (type) {
+          case "increase":
+            controls.row = skip[i + 1] + 1;
+            return true;
+          case "decrease":
+            controls.row = skip[i];
+            return true;
+        }
       }
     }
   },
-  updateLimits: function(col = this.colLimit,row = this.rowLimit, type = ""){
+  updateLimits: function (col = this.colLimit, row = this.rowLimit, type = "") {
     let colLimit = `col${type}Limit`;
     let rowLimit = `row${type}Limit`;
     this[colLimit] = col;
     this[rowLimit] = row;
-    debug.print(`controls.updateLimits() - New limits for col and row are set to ${col} and ${row}`);
+    debug.print(
+      `controls.updateLimits() - New limits for col and row are set to ${col} and ${row}`
+    );
   },
-  updateControls: function(col = this.col, row = this.row){
+  updateControls: function (col = this.col, row = this.row) {
     this.col = col;
     this.row = row;
-    debug.print(`controls.updateControls() - col: ${this.col} row: ${this.row}`);
+    debug.print(
+      `controls.updateControls() - col: ${this.col} row: ${this.row}`
+    );
   },
-  handleEnter: function(){
-    switch(this.col){
+  handleEnter: function () {
+    switch (this.col) {
       case 7:
         menu.toggleList();
         break;
@@ -161,19 +164,18 @@ const controls = {
         menu.refreshMenu();
         break;
     }
-
   },
-  handleKeydown: function(e) {
+  handleKeydown: function (e) {
     debug.print(`${e.key} triggered`);
     let pastRow = controls.row;
     switch (e.key) {
       case "ArrowUp":
         controls.decrease("row");
-        menuHover(controls.row,pastRow,"")
+        menuHover(controls.row, pastRow, "");
         break;
       case "ArrowDown":
         controls.increase("row");
-        menuHover(controls.row,pastRow,"")
+        menuHover(controls.row, pastRow, "");
         break;
       case "ArrowRight":
         controls.increase("col");
@@ -191,48 +193,48 @@ const controls = {
       case "SoftLeft":
         break;
       case "#":
-        debug.toggle()
+        debug.toggle();
         break;
       case "Backspace":
         close();
         break;
     }
     debug.show(e.key);
-  }
-}
+  },
+};
 
 const menu = {
   hideList: [],
-  activeHideList: [],
   enableRefresh: false,
   timeoutID: undefined,
-  splitAtRow:[],
-  draw: function(col = controls.col){
+  splitAtRow: [],
+  draw: function (col = controls.col) {
     controls.updateControls(col);
     controls.resetControls("row");
     const menuContainer = document.getElementById("menu-container");
+    this.activeHideList = [];
     let data;
     data = this.getMenuData(col);
     menuContainer.innerHTML = data[0];
-    this.updateNavbar(data[1])
-    this.refreshMenu();
-    try{
+    this.updateNavbar(data[1]);
+    try {
       clearTimeout(this.timeoutID);
-    }
-    catch(e){
+    } catch (e) {
       debug.print("menu.draw() - Refreshing menu for the first time");
     }
     document.getElementById("l" + controls.col).className = "hovered";
-    document.getElementById(controls.row).className = "hovered"
+    document.getElementById(controls.row).className = "hovered";
+    this.refreshMenu();
   },
-  getHideListBoundaries: function(type){
-    if (this.splitAtRow.length > 0){
-      let startAt = [], endAt = [];
-      for(let i = 0; i<this.splitAtRow.length; i+=2){
+  getHideListBoundaries: function (type) {
+    if (this.splitAtRow.length > 0) {
+      let startAt = [],
+        endAt = [];
+      for (let i = 0; i < this.splitAtRow.length; i += 2) {
         startAt.push(this.splitAtRow[i]);
-        endAt.push(this.splitAtRow[i+1]);
+        endAt.push(this.splitAtRow[i + 1]);
       }
-      switch (type){
+      switch (type) {
         case "start":
           return startAt;
         case "end":
@@ -240,320 +242,511 @@ const menu = {
         default:
           return false;
       }
-  }
-  else{
-    return false;
-  }
-},
-  toggleList: function(forceHide = undefined){
-      let startAt = this.getHideListBoundaries("start");
-      let endAt = this.getHideListBoundaries("end");
-      if (!startAt || !endAt){
-        return;
+    } else {
+      return false;
+    }
+  },
+  toggleList: function (forceHide = undefined) {
+    let startAt = this.getHideListBoundaries("start");
+    let endAt = this.getHideListBoundaries("end");
+    if (!startAt || !endAt) {
+      return;
+    }
+    if (startAt.includes(controls.row)) {
+      endAt = endAt[startAt.indexOf(controls.row)];
+      startAt = startAt[startAt.indexOf(controls.row)];
+      if (
+        (document.getElementById(controls.row + 1).style.display === "none") &
+        (forceHide != "hide")
+      ) {
+        debug.print(
+          `toggleList() - Showing elements from ${startAt} to ${endAt}`
+        );
+        showElements("", startAt + 1, endAt);
+        this.hideList = this.hideList.filter(function (element) {
+          return element !== controls.row;
+        });
+        const oldText = removeAllElementsInString(
+          document.getElementById(startAt).innerHTML,
+          "  ↓"
+        );
+        document.getElementById(startAt).innerHTML = `${oldText}  &#8593;`;
+      } else {
+        debug.print(
+          `toggleList() - hiding elements from ${startAt} to ${endAt}`
+        );
+        hideElements("", startAt + 1, endAt);
+        this.hideList.push(controls.row);
+        let oldText = removeAllElementsInString(
+          document.getElementById(startAt).innerHTML,
+          "  ↑"
+        );
+        document.getElementById(startAt).innerHTML = `${oldText}  &#8595;`;
       }
-      if (startAt.includes(controls.row)){
-        endAt = endAt[startAt.indexOf(controls.row)];
-        startAt = startAt[startAt.indexOf(controls.row)]
-        if(document.getElementById(controls.row+1).style.display === "none" & forceHide != "hide"){
-          debug.print(`toggleList() - Showing elements from ${startAt} to ${endAt}`);
-          showElements("",startAt+1, endAt);
-          this.activeHideList = this.hideList.filter(function(element) {
-            return element !== controls.row;
-          });
-          const oldText = removeAllElementsInString(document.getElementById(startAt).innerHTML,"  ↓");
-          document.getElementById(startAt).innerHTML = `${oldText}  &#8593;`
-        }
-        else{
-          debug.print(`toggleList() - hiding elements from ${startAt} to ${endAt}`);
-          hideElements("",startAt+1, endAt);
-          this.activeHideList.push(controls.row);
-          let oldText = removeAllElementsInString(document.getElementById(startAt).innerHTML,"  ↑");
-          document.getElementById(startAt).innerHTML = `${oldText}  &#8595;`
-        }
-      }
-    else{
+    } else {
       return;
     }
   },
-  refreshMenu: function(){
-    if(this.enableRefresh){
-      debug.print("menu.refreshMenu - Refreshing menu")
-      const data = this.getMenuData(controls.col,true);
-      for(let i = 1; i<data.length+1;i++){
-        document.getElementById(i).innerText = data[i-1];
+  refreshMenu: function () {
+    if (this.enableRefresh) {
+      debug.print("menu.refreshMenu - Refreshing menu");
+      const data = this.getMenuData(controls.col, true);
+      for (let i = 1; i < data.length + 1; i++) {
+        document.getElementById(i).innerText = data[i - 1];
       }
       this.timeoutID = setTimeout(() => {
         this.refreshMenu();
-    }, 1000);
+      }, 1000);
     }
   },
-  updateNavbar: function(navbarArr){    
+  updateNavbar: function (navbarArr) {
     const navbarContainer = document.getElementById("nav-bar");
     navbarContainer.innerHTML = navbarArr;
   },
-  getMenuData: function(col, returnOnlyData = false){
+  getMenuData: function (col, returnOnlyData = false) {
     let menu = "";
     let rowCount = 1;
     this.enableRefresh = false;
     this.splitAtRow = [];
-    let navbarEntries =
-    `<span id="l1" class = "active">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
+    let navbarEntries = `<span id="l1" class = "active">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
     switch (col) {
       case 1:
         menu = `<ul>
         <li id="1">${localeData[1]["1"]}: ${getInfoString("system-model")}</li>
         <li id="2">${localeData[1]["2"]}: ${getInfoString("system-os")}</li>
-        <li id="3">${localeData[1]["3"]}: ${getInfoString("system-firefox")}</li>
+        <li id="3">${localeData[1]["3"]}: ${getInfoString(
+          "system-firefox"
+        )}</li>
         <li id="4">${localeData[1]["4"]}: ${getInfoString("system-ram")}</li>
-        <li id="5">${localeData[1]["5"]}: ${getInfoString("system-developer")}</li>
+        <li id="5">${localeData[1]["5"]}: ${getInfoString(
+          "system-developer"
+        )}</li>
         </ul>
-    `
-      controls.rowLimit = 5;
-    break;
+    `;
+        controls.rowLimit = 5;
+        break;
       case 2:
-        navbarEntries =
-        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="active">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
+        navbarEntries = `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="active">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
         menu = `<ul>
-        <li id="1">${localeData[2]["1"]}: ${getInfoString("resolution")}</li>
-        <li id="2">${localeData[2]["2"]}: ${getInfoString("depth")}</li>
-        <li id="3">${localeData[2]["3"]}: ${getInfoString("aspectratio")}</li>
-        <li id="4">${localeData[2]["4"]}: ${getInfoString("orientation")}</li>
-        </ul>`
+        <li id="1">${localeData[2]["1"]}: ${getInfoString(
+          "display-resolution"
+        )}</li>
+        <li id="2">${localeData[2]["2"]}: ${getInfoString("display-depth")}</li>
+        <li id="3">${localeData[2]["3"]}: ${getInfoString(
+          "display-aspect-ratio"
+        )}</li>
+        <li id="4">${localeData[2]["4"]}: ${getInfoString(
+          "display-orientation"
+        )}</li>
+        </ul>`;
         controls.rowLimit = 4;
         break;
       case 3:
-        navbarEntries =
-        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="active">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
+        navbarEntries = `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="active">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
         menu = `<ul>
         <li id="1">${localeData[3]["1"]}: ${getInfoString("cpu")}</li>
         <li id="2">${localeData[3]["2"]}: ${getInfoString("cpu-cores")}</li>
-        <li id="3">${localeData[3]["3"]}: ${getInfoString("cpu-freq")}</li>
-        </ul>`
+        <li id="3">${localeData[3]["3"]}: ${getInfoString("cpu-frequency")}</li>
+        </ul>`;
         controls.rowLimit = 3;
         break;
       case 4:
-        navbarEntries =
-        `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="active">${localeData[4]["index"]}</span></span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
+        navbarEntries = `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="active">${localeData[4]["index"]}</span></span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
         menu = `<ul>
         <li id="1">${localeData[4]["1"]}: ${getInfoString("gpu")}</li>
         <li id="2">${localeData[4]["2"]}: ${getInfoString("gpu-man")}</li>
-        </ul>`
+        </ul>`;
         controls.rowLimit = 2;
         break;
       case 5:
-        navbarEntries =
-        `<span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="active">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
-        menu = "<ul>"
-        if (cameraData.initStatus){
-        const camerasAmount = cameraData.camerasList.length || 0;
-        if (camerasAmount > 0){
-          for(let i = 0; i<camerasAmount; i++){
+        navbarEntries = `<span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="active">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
+        menu = "<ul>";
+        if (cameraData.initStatus) {
+          const camerasAmount = cameraData.camerasList.length || 0;
+          if (camerasAmount > 0) {
+            for (let i = 0; i < camerasAmount; i++) {
               menu += `
-              <li id="${rowCount++}">${localeData[5]["1"]}: ${getInfoString("camera-id",i)}</li>
-              <li id="${rowCount++}">${localeData[5]["2"]}: ${getInfoString("camera-name",i)}</li>
-              <li id="${rowCount++}">${localeData[5]["3"]}: ${getInfoString("camera-photo-resolution",i)}</li>
-              <li id="${rowCount++}">${localeData[5]["4"]}: ${getInfoString("camera-photo-focal",i)}</li>
-              <li id="${rowCount++}">${localeData[5]["5"]}: ${getInfoString("camera-video-resolution",i)}</li>
-              <li id="${rowCount++}">${localeData[5]["6"]}: ${getInfoString("camera-video-bitrate",i)}</li>
-              <li id="${rowCount++}">${localeData[5]["7"]}: ${getInfoString("camera-video-framerate",i)}</li>
-              <li id="${rowCount++}">${localeData[5]["8"]}: ${getInfoString("camera-video-codec",i)}</li>
-              `
+              <li id="${rowCount++}">${localeData[5]["1"]}: ${getInfoString(
+                "camera-id",
+                i
+              )}</li>
+              <li id="${rowCount++}">${localeData[5]["2"]}: ${getInfoString(
+                "camera-name",
+                i
+              )}</li>
+              <li id="${rowCount++}">${localeData[5]["3"]}: ${getInfoString(
+                "camera-photo-resolution",
+                i
+              )}</li>
+              <li id="${rowCount++}">${localeData[5]["4"]}: ${getInfoString(
+                "camera-photo-focal",
+                i
+              )}</li>
+              <li id="${rowCount++}">${localeData[5]["5"]}: ${getInfoString(
+                "camera-video-resolution",
+                i
+              )}</li>
+              <li id="${rowCount++}">${localeData[5]["6"]}: ${getInfoString(
+                "camera-video-bitrate",
+                i
+              )}</li>
+              <li id="${rowCount++}">${localeData[5]["7"]}: ${getInfoString(
+                "camera-video-framerate",
+                i
+              )}</li>
+              <li id="${rowCount++}">${localeData[5]["8"]}: ${getInfoString(
+                "camera-video-codec",
+                i
+              )}</li>
+              `;
+            }
+            rowCount -= 1;
+          } else {
+            menu += `<li id="${rowCount++}">${
+              localeData[0]["errorOnEmptyList"]
+            }</li>`;
           }
-          rowCount -= 1;
+        } else {
+          menu += `<li id="${rowCount++}">${localeData[0]["errorOnApi"]}</li>`;
         }
-        else{
-          menu += `<li id="${rowCount++}">${localeData[0]["errorOnEmptyList"]}</li>`
-        }
-      }
-      else{
-        menu += `<li id="${rowCount++}">${localeData[0]["errorOnApi"]}</li>`
-      }
-        menu += "</ul>"
+        menu += "</ul>";
         controls.rowLimit = rowCount;
         break;
       case 6:
-        navbarEntries =
-        `<span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="active">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
-        if (returnOnlyData){
-          menu = [`${localeData[6]["1"]}: ${getInfoString("battery-level")}`,`${localeData[6]["2"]}: ${getInfoString("battery-health")}`,`${localeData[6]["3"]}: ${getInfoString("battery-status")}`,`${localeData[6]["4"]}: ${getInfoString("battery-temperature")}`];
-        }
-        else{
-        menu = `<ul>
+        navbarEntries = `<span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="active">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
+        if (returnOnlyData) {
+          menu = [
+            `${localeData[6]["1"]}: ${getInfoString("battery-level")}`,
+            `${localeData[6]["2"]}: ${getInfoString("battery-health")}`,
+            `${localeData[6]["3"]}: ${getInfoString("battery-status")}`,
+            `${localeData[6]["4"]}: ${getInfoString("battery-temperature")}`,
+          ];
+        } else {
+          menu = `<ul>
         <li id="1">${localeData[6]["1"]}: ${getInfoString("battery-level")}</li>
-        <li id="2">${localeData[6]["2"]}: ${getInfoString("battery-health")}</li>
-        <li id="3">${localeData[6]["3"]}: ${getInfoString("battery-status")}</li>
-        <li id="4">${localeData[6]["4"]}: ${getInfoString("battery-temperature")}</li>
-        </ul>`
-      }
+        <li id="2">${localeData[6]["2"]}: ${getInfoString(
+            "battery-health"
+          )}</li>
+        <li id="3">${localeData[6]["3"]}: ${getInfoString(
+            "battery-status"
+          )}</li>
+        <li id="4">${localeData[6]["4"]}: ${getInfoString(
+            "battery-temperature"
+          )}</li>
+        </ul>`;
+        }
         controls.rowLimit = 4;
         this.enableRefresh = true;
         break;
       case 7:
-          this.hideList = [];
-          navbarEntries =
-          `<span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="active">${localeData[7]["index"]}</span><span id="l8" class="notactive">${localeData[8]["index"]}</span>`;
-          if (getInfoString("network-wifi")){
-          if (returnOnlyData){
-            menu = [`${localeData[7]["1"]}: ${getInfoString("network-wifi-type")}${this.hideList.includes(1) ? "  ↓" : "  ↑"}`,`${localeData[7]["2"]}: ${getInfoString("network-wifi-ssid")}`,`${localeData[7]["3"]}: ${getInfoString("network-wifi-speed")}`,`${localeData[7]["4"]}: ${getInfoString("network-wifi-signal")}`,`${localeData[7]["5"]}: ${getInfoString("network-wifi-ip")}`,`${localeData[7]["6"]}: ${getInfoString("network-wifi-frequency")}`,`${localeData[7]["7"]}: ${getInfoString("network-wifi-internet")}`,`${localeData[7]["8"]}: ${getInfoString("network-wifi-hidden")}`,`${localeData[7]["9"]}: ${getInfoString("network-wifi-mac")}`]
+        this.hideList = [];
+        navbarEntries = `<span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="active">${localeData[7]["index"]}</span><span id="l8" class="notactive">${localeData[8]["index"]}</span>`;
+        if (getInfoString("network-wifi")) {
+          if (returnOnlyData) {
+            menu = [
+              `${localeData[7]["1"]}: ${getInfoString("network-wifi-type")}${
+                this.hideList.includes(1) ? "  ↓" : "  ↑"
+              }`,
+              `${localeData[7]["2"]}: ${getInfoString("network-wifi-ssid")}`,
+              `${localeData[7]["3"]}: ${getInfoString("network-wifi-speed")}`,
+              `${localeData[7]["4"]}: ${getInfoString("network-wifi-signal")}`,
+              `${localeData[7]["5"]}: ${getInfoString("network-wifi-ip")}`,
+              `${localeData[7]["6"]}: ${getInfoString(
+                "network-wifi-frequency"
+              )}`,
+              `${localeData[7]["7"]}: ${getInfoString(
+                "network-wifi-internet"
+              )}`,
+              `${localeData[7]["8"]}: ${getInfoString("network-wifi-hidden")}`,
+              `${localeData[7]["9"]}: ${getInfoString("network-wifi-mac")}`,
+            ];
+          } else {
+            menu = `<ul>
+          <li id="1">${localeData[7]["1"]}: ${getInfoString(
+              "network-wifi-type"
+            )}${this.hideList.includes(1) ? "  ↓" : "  ↑"}</li>
+          <li id="2">${localeData[7]["2"]}: ${getInfoString(
+              "network-wifi-ssid"
+            )}</li>
+          <li id="3">${localeData[7]["3"]}: ${getInfoString(
+              "network-wifi-speed"
+            )}</li>
+          <li id="4">${localeData[7]["4"]}: ${getInfoString(
+              "network-wifi-signal"
+            )}</li>
+          <li id="5">${localeData[7]["5"]}: ${getInfoString(
+              "network-wifi-ip"
+            )}</li>
+          <li id="6">${localeData[7]["6"]}: ${getInfoString(
+              "network-wifi-frequency"
+            )}</li>
+          <li id="7">${localeData[7]["7"]}: ${getInfoString(
+              "network-wifi-internet"
+            )}</li>
+          <li id="8">${localeData[7]["8"]}: ${getInfoString(
+              "network-wifi-hidden"
+            )}</li>
+          <li id="9">${localeData[7]["9"]}: ${getInfoString(
+              "network-wifi-mac"
+            )}</li>
+          `;
           }
-          else{
-          menu = `<ul>
-          <li id="1">${localeData[7]["1"]}: ${getInfoString("network-wifi-type")}${this.hideList.includes(1) ? "  ↓" : "  ↑"}</li>
-          <li id="2">${localeData[7]["2"]}: ${getInfoString("network-wifi-ssid")}</li>
-          <li id="3">${localeData[7]["3"]}: ${getInfoString("network-wifi-speed")}</li>
-          <li id="4">${localeData[7]["4"]}: ${getInfoString("network-wifi-signal")}</li>
-          <li id="5">${localeData[7]["5"]}: ${getInfoString("network-wifi-ip")}</li>
-          <li id="6">${localeData[7]["6"]}: ${getInfoString("network-wifi-frequency")}</li>
-          <li id="7">${localeData[7]["7"]}: ${getInfoString("network-wifi-internet")}</li>
-          <li id="8">${localeData[7]["8"]}: ${getInfoString("network-wifi-hidden")}</li>
-          <li id="9">${localeData[7]["9"]}: ${getInfoString("network-wifi-mac")}</li>
-          `
-          }
-          this.splitAtRow.push(1,9);
+          this.splitAtRow.push(1, 9);
           rowCount = 10;
-        }
-        else{
-          if (returnOnlyData){
+        } else {
+          if (returnOnlyData) {
             menu = [`${localeData[0]["errorOnApi"]}`];
             rowCount += 1;
-          }
-          else{
-            menu += `<ul><li id="${rowCount++}">${localeData[0]["errorOnApi"]}</li>`;
+          } else {
+            menu += `<ul><li id="${rowCount++}">${
+              localeData[0]["errorOnApi"]
+            }</li>`;
           }
         }
-          
-          if (getInfoString("network-telephony-amount") > 0){
-            for(let i = 0; i < getInfoString("network-telephony-amount"); i++){
-              if (returnOnlyData){
-                menu.push(`${localeData[7]["10"]}: ${getInfoString("network-telephony-type",i)}`);
-                menu.push(`${localeData[7]["11"]}: ${getInfoString("network-telephony-sim-provider",i)}`);
-                menu.push(`${localeData[7]["12"]}: ${getInfoString("network-telephony-sim-type",i)}`);
-                menu.push(`${localeData[7]["13"]}: ${getInfoString("network-telephony-sim-signal",i)}`);
-                menu.push(`${localeData[7]["14"]}: ${getInfoString("network-telephony-sim-roaming",i)}`);
-                menu.push(`${localeData[7]["15"]}: ${getInfoString("network-telephony-sim-state",i)}`);
-                menu.push(`${localeData[7]["16"]}: ${getInfoString("network-telephony-sim-iccid",i)}`);
-                rowCount += 7;
-                this.splitAtRow.push(rowCount-7,rowCount-1);
-              }
-              else{
+
+        if (getInfoString("network-telephony-amount") > 0) {
+          for (let i = 0; i < getInfoString("network-telephony-amount"); i++) {
+            if (returnOnlyData) {
+              menu.push(
+                `${localeData[7]["10"]}: ${getInfoString(
+                  "network-telephony-type",
+                  i
+                )}`,
+                `${localeData[7]["11"]}: ${getInfoString(
+                  "network-telephony-sim-provider",
+                  i
+                )}`,
+                `${localeData[7]["12"]}: ${getInfoString(
+                  "network-telephony-sim-type",
+                  i
+                )}`,
+                `${localeData[7]["13"]}: ${getInfoString(
+                  "network-telephony-sim-signal",
+                  i
+                )}`,
+                `${localeData[7]["14"]}: ${getInfoString(
+                  "network-telephony-sim-roaming",
+                  i
+                )}`,
+                `${localeData[7]["15"]}: ${getInfoString(
+                  "network-telephony-sim-state",
+                  i
+                )}`,
+                `${localeData[7]["16"]}: ${getInfoString(
+                  "network-telephony-sim-iccid",
+                  i
+                )}`
+              );
+              rowCount += 7;
+              this.splitAtRow.push(rowCount - 7, rowCount - 1);
+            } else {
               menu += `
-              <li id="${rowCount++}">${localeData[7]["10"]}: ${getInfoString("network-telephony-type",i)}</li>
-              <li id="${rowCount++}">${localeData[7]["11"]}: ${getInfoString("network-telephony-sim-provider",i)}</li>
-              <li id="${rowCount++}">${localeData[7]["12"]}: ${getInfoString("network-telephony-sim-type",i)}</li>
-              <li id="${rowCount++}">${localeData[7]["13"]}: ${getInfoString("network-telephony-sim-signal",i)}</li>
-              <li id="${rowCount++}">${localeData[7]["14"]}: ${getInfoString("network-telephony-sim-roaming",i)}</li>
-              <li id="${rowCount++}">${localeData[7]["15"]}: ${getInfoString("network-telephony-sim-state",i)}</li>
-              <li id="${rowCount++}">${localeData[7]["16"]}: ${getInfoString("network-telephony-sim-iccid",i)}</li>
+              <li id="${rowCount++}">${localeData[7]["10"]}: ${getInfoString(
+                "network-telephony-type",
+                i
+              )}</li>
+              <li id="${rowCount++}">${localeData[7]["11"]}: ${getInfoString(
+                "network-telephony-sim-provider",
+                i
+              )}</li>
+              <li id="${rowCount++}">${localeData[7]["12"]}: ${getInfoString(
+                "network-telephony-sim-type",
+                i
+              )}</li>
+              <li id="${rowCount++}">${localeData[7]["13"]}: ${getInfoString(
+                "network-telephony-sim-signal",
+                i
+              )}</li>
+              <li id="${rowCount++}">${localeData[7]["14"]}: ${getInfoString(
+                "network-telephony-sim-roaming",
+                i
+              )}</li>
+              <li id="${rowCount++}">${localeData[7]["15"]}: ${getInfoString(
+                "network-telephony-sim-state",
+                i
+              )}</li>
+              <li id="${rowCount++}">${localeData[7]["16"]}: ${getInfoString(
+                "network-telephony-sim-iccid",
+                i
+              )}</li>
               `;
-              this.splitAtRow.push(rowCount-7,rowCount-1);
-              }
+              this.splitAtRow.push(rowCount - 7, rowCount - 1);
             }
           }
-          else{
-            if (returnOnlyData){
-              menu.push[`${localeData[0]["errorOnApi"]}`];
-              rowCount += 1;
-            }
-            else{
-              menu += `<li id="${rowCount++}">${localeData[0]["errorOnApi"]}</li>`;
-            }
+        } else {
+          if (returnOnlyData) {
+            menu.push[`${localeData[0]["errorOnApi"]}`];
+            rowCount += 1;
+          } else {
+            menu += `<li id="${rowCount++}">${
+              localeData[0]["errorOnApi"]
+            }</li>`;
           }
-          if(!returnOnlyData){
-            menu += "</ul>"
-          }
-          rowCount--;
-          controls.rowLimit = rowCount;
-          this.enableRefresh = true;
-          break;
+        }
+        if (!returnOnlyData) {
+          menu += "</ul>";
+        }
+        rowCount--;
+        controls.rowLimit = rowCount;
+        this.enableRefresh = true;
+        break;
       case 8:
-      navbarEntries =
-          `<span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span><span id="l8" class="active">${localeData[8]["index"]}</span>`;
-          if (getInfoString("bluetooth")){
-            if(returnOnlyData){
-              menu = []
-              menu.push(`${localeData[8]["1"]}: ${getInfoString("bluetooth-status")}`,`${localeData[8]["2"]}: ${getInfoString("bluetooth-name")}`,`${localeData[8]["3"]}: ${getInfoString("bluetooth-address")}`,`${localeData[8]["4"]}: ${getInfoString("bluetooth-discoverable")}`,`${localeData[8]["5"]}: ${getInfoString("bluetooth-discovering")}`);
-            }
-            else{
+        navbarEntries = `<span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span><span id="l8" class="active">${localeData[8]["index"]}</span><span id="l9" class="notactive">${localeData[9]["index"]}</span>`;
+        if (getInfoString("bluetooth")) {
+          if (returnOnlyData) {
+            menu = [];
+            menu.push(
+              `${localeData[8]["1"]}: ${getInfoString("bluetooth-status")}`,
+              `${localeData[8]["2"]}: ${getInfoString("bluetooth-name")}`,
+              `${localeData[8]["3"]}: ${getInfoString("bluetooth-address")}`,
+              `${localeData[8]["4"]}: ${getInfoString(
+                "bluetooth-discoverable"
+              )}`,
+              `${localeData[8]["5"]}: ${getInfoString("bluetooth-discovering")}`
+            );
+          } else {
             menu += `<ul>
-            <li id="1">${localeData[8]["1"]}: ${getInfoString("bluetooth-status")}</li>
-            <li id="2">${localeData[8]["2"]}: ${getInfoString("bluetooth-name")}</li>
-            <li id="3">${localeData[8]["3"]}: ${getInfoString("bluetooth-address")}</li>
-            <li id="4">${localeData[8]["4"]}: ${getInfoString("bluetooth-discoverable")}</li>
-            <li id="5">${localeData[8]["5"]}: ${getInfoString("bluetooth-discovering")}</li>
+            <li id="1">${localeData[8]["1"]}: ${getInfoString(
+              "bluetooth-status"
+            )}</li>
+            <li id="2">${localeData[8]["2"]}: ${getInfoString(
+              "bluetooth-name"
+            )}</li>
+            <li id="3">${localeData[8]["3"]}: ${getInfoString(
+              "bluetooth-address"
+            )}</li>
+            <li id="4">${localeData[8]["4"]}: ${getInfoString(
+              "bluetooth-discoverable"
+            )}</li>
+            <li id="5">${localeData[8]["5"]}: ${getInfoString(
+              "bluetooth-discovering"
+            )}</li>
             </ul> `;
-            }
-            controls.rowLimit = 5;
           }
-          else{
-            if(returnOnlyData){
-              menu = [`${localeData[0]["errorOnApi"]}`];
-            }
-            else{
+          controls.rowLimit = 5;
+        } else {
+          if (returnOnlyData) {
+            menu = [`${localeData[0]["errorOnApi"]}`];
+          } else {
             menu += `<ul><li id="1">${localeData[0]["errorOnApi"]}</li></ul>`;
           }
-            controls.rowLimit = 1;
-          }
-          this.enableRefresh = true;
-        break;  
-      }
-  controls.colLimit = 8;
-  if (returnOnlyData) return menu;
-  return [menu,navbarEntries]
-}
-}
+          controls.rowLimit = 1;
+        }
+        this.enableRefresh = true;
+        break;
+      case 9:
+        navbarEntries = `<span id="l7" class="notactive">${localeData[7]["index"]}</span><span id="l8" class="notactive">${localeData[8]["index"]}</span><span id="l9" class="active">${localeData[9]["index"]}</span>`;
 
-function scrollHide(){
-      const limit = 4;
-      const entriesAmount = controls.rowLimit;
-      if(entriesAmount <= limit){
-        return;
-      }
-      const scrolls = Math.ceil(entriesAmount / limit);
-      const currentScrollPos = Math.ceil(controls.row / limit);
-      let stopLimit = currentScrollPos * limit + 1;
-      if(stopLimit > entriesAmount){
-        stopLimit = entriesAmount; // Prevent overflow
-      }
-      let startLimit = stopLimit - limit;
-      if(menu.getHideListBoundaries("end")[0] >= startLimit && menu.hideList.includes(menu.getHideListBoundaries("start")[0])){
-        debug.print("scrollHide() - startLimit < hideList end position, returning");
-        return;
-      }
-      debug.print(`scrollHide() - startLimit: ${startLimit} , endLimit: ${stopLimit}`) 
-      showElements("", startLimit, stopLimit);
-      if(scrolls == currentScrollPos){
-        startLimit += 1; // Prevent overflow in the last scroll
-      }
-      hideElements("", 1, startLimit-1, stopLimit);
+        if (returnOnlyData) {
+          menu = [];
+          for (let i = 0; i < storageData.deviceStorages.length; i++) {
+            menu.push(
+              `${localeData[9]["1"]}: ${getInfoString("storage-type", i)}`,
+              `${localeData[9]["2"]}: ${getInfoString(
+                "storage-space-total",
+                i
+              )}`,
+              `${localeData[9]["3"]}: ${getInfoString(
+                "storage-space-left",
+                i
+              )}`,
+              `${localeData[9]["4"]}: ${getInfoString("storage-default", i)}`
+            );
+            rowCount += 4;
+          }
+        } else {
+          menu = "<ul>";
+
+          for (let i = 0; i < storageData.deviceStorages.length; i++) {
+            menu += `
+            <li id="${rowCount++}">${localeData[9]["1"]}: ${getInfoString(
+              "storage-type",
+              i
+            )}</li>
+            <li id="${rowCount++}">${localeData[9]["2"]}: ${getInfoString(
+              "storage-space-total",
+              i
+            )}</li>
+            <li id="${rowCount++}">${localeData[9]["3"]}: ${getInfoString(
+              "storage-space-left",
+              i
+            )}</li>
+            <li id="${rowCount++}">${localeData[9]["4"]}: ${getInfoString(
+              "storage-default",
+              i
+            )}</li>
+             `;
+          }
+          menu += "</ul>";
+        }
+        storageData.refresh();
+        controls.rowLimit = rowCount - 1;
+        this.enableRefresh = true;
+        break;
+    }
+
+    controls.colLimit = 9;
+    if (returnOnlyData) return menu;
+    return [menu, navbarEntries];
+  },
+};
+
+function scrollHide() {
+  const limit = 4;
+  const entriesAmount = controls.rowLimit;
+  if (entriesAmount <= limit) {
+    return;
   }
+  const scrolls = Math.ceil(entriesAmount / limit);
+  const currentScrollPos = Math.ceil(controls.row / limit);
+  let stopLimit = currentScrollPos * limit + 1;
+  if (stopLimit > entriesAmount) {
+    stopLimit = entriesAmount; // Prevent overflow
+  }
+  let startLimit = stopLimit - limit;
+  if (
+    menu.getHideListBoundaries("end")[0] >= startLimit &&
+    menu.hideList.includes(menu.getHideListBoundaries("start")[0])
+  ) {
+    debug.print("scrollHide() - startLimit < hideList end position, returning");
+    return;
+  }
+  debug.print(
+    `scrollHide() - startLimit: ${startLimit} , endLimit: ${stopLimit}`
+  );
+  showElements("", startLimit, stopLimit);
+  if (scrolls == currentScrollPos) {
+    startLimit += 1; // Prevent overflow in the last scroll
+  }
+  hideElements("", 1, startLimit - 1, stopLimit);
+}
 
 function hideElement(id) {
-    document.getElementById(id).style.display = "none";
-  }
+  document.getElementById(id).style.display = "none";
+}
 function showElement(id) {
-    document.getElementById(id).style.display = "flex";
-  }
+  document.getElementById(id).style.display = "flex";
+}
 
-  function showElements(obj, start, end) {
-    debug.print(`scrollHide() - showElements() - from ${start} upto ${end}`)
-    for (let i = start; i <= end; i++) {
-      showElement(obj + i);
-    }
+function showElements(obj, start, end) {
+  debug.print(`scrollHide() - showElements() - from ${start} upto ${end}`);
+  for (let i = start; i <= end; i++) {
+    showElement(obj + i);
   }
-  function hideElements(obj, startUp, endUp) {
-    debug.print(`scrollHide() - hideElements() - from ${startUp} upto ${endUp}`);
-    if(startUp != endUp || startUp == 1){
+}
+function hideElements(obj, startUp, endUp) {
+  debug.print(`scrollHide() - hideElements() - from ${startUp} upto ${endUp}`);
+  if (startUp != endUp || startUp == 1) {
     for (let i = startUp; i <= endUp; i++) {
       hideElement(obj + i);
     }
   }
 }
 
-function getInfoString(item, arg = undefined){
-  let info;
-  switch(item){
+function getInfoString(item, arg = undefined) {
+  switch (item) {
     default:
-      return "Unknown"
+      return "Unknown";
     case "system-model":
       return systemData.model;
     case "system-os":
@@ -564,40 +757,18 @@ function getInfoString(item, arg = undefined){
       return `${systemData.ram} MB`;
     case "system-developer":
       return systemData.developerMode;
-    case "resolution":
-      info = `${window.screen.height}x${window.screen.width}`
-      break;
-    case "depth":
-      info = window.screen.colorDepth;
-      break;
-    case "aspectratio":
-      let height = window.screen.height;
-      let width = window.screen.width;
-      let ratio = width/height;
-      info = 0;
-      let k = 0;
-      do{
-        k++;
-        info += ratio;
-      } while (info < height && info % 1 != 0)
-      info = `${k}:${info}`;
-      break;
-    case "orientation":
-      info = window.screen.mozOrientation;
-      break;
+    case "display-resolution":
+      return displayData.resolution;
+    case "display-depth":
+      return displayData.colorDepth;
+    case "display-aspect-ratio":
+      return displayData.aspectRatio;
+    case "display-orientation":
+      return displayData.screenOrientation;
     case "cpu-cores":
-      info = navigator.hardwareConcurrency;
-      break;
-    case "cpu-freq":
-      const runs = 150000000;
-      const start = performance.now();
-      for (let i = runs; i>0; i--) {}
-      const end = performance.now();
-      const ms = end - start;
-      const cyclesPerRun = 2;
-      const speed = (runs / ms / 1000000) * cyclesPerRun;
-      info = `~${speed.toFixed(2)} GHz`;
-      break;
+      return cpuData.coresAmount;
+    case "cpu-frequency":
+      return `~${cpuData.estimatedFrequency} GHz`;
     case "gpu":
     case "gpu-man":
       return getGpuInfo(item);
@@ -609,12 +780,12 @@ function getInfoString(item, arg = undefined){
     case "camera-video-bitrate":
     case "camera-video-framerate":
     case "camera-video-codec":
-      return cameraData.get(item,arg);
+      return cameraData.get(item, arg);
     case "battery-level":
     case "battery-health":
     case "battery-status":
     case "battery-temperature":
-      return batteryData.get(item.replace("battery-",""));
+      return batteryData.get(item.replace("battery-", ""));
     case "network-wifi":
     case "network-wifi-type":
     case "network-wifi-ssid":
@@ -634,10 +805,9 @@ function getInfoString(item, arg = undefined){
     case "network-telephony-sim-iccid":
       return getNetworkInfo(item, arg);
     case "network-telephony-amount":
-      if(navigator.mozMobileConnections){
+      if (navigator.mozMobileConnections) {
         return navigator.mozMobileConnections.length;
-      }
-      else{
+      } else {
         return 0;
       }
     case "bluetooth-status":
@@ -647,118 +817,204 @@ function getInfoString(item, arg = undefined){
     case "bluetooth-discovering":
       return getBluetoothInfo(item);
     case "bluetooth":
-      if (navigator.mozBluetooth === undefined){
+      if (navigator.mozBluetooth === undefined) {
         return false;
-      }
-      else{
+      } else {
         return true;
       }
+    case "storage-type":
+      return storageData.storageName[arg] == "sdcard"
+        ? `Internal (${storageData.storageName[arg]})`
+        : `External (${storageData.storageName[arg]})`;
+    case "storage-space-total":
+      return `${(storageData.totalSpace[arg] * 1e-9).toFixed(2)} GB`;
+    case "storage-space-left":
+      return `${(storageData.usedSpace[arg] * 1e-9).toFixed(
+        2
+      )} GB (${Math.round(
+        (storageData.usedSpace[arg] / storageData.totalSpace[arg]) * 100
+      )} %)`;
+    case "storage-default":
+      return storageData.isDefault[arg];
   }
-  
-  return info;
 }
+
+const storageData = {
+  init: function () {
+    this.deviceStorages = navigator.getDeviceStorages("sdcard") || [];
+    if (this.deviceStorages.length > 0) {
+      this.storageName = [];
+      this.freeSpace = [];
+      this.usedSpace = [];
+      this.totalSpace = [];
+      this.isDefault = [];
+      for (let i = 0; i < this.deviceStorages.length; i++) {
+        this.storageName.push(this.deviceStorages[i].storageName);
+        this.isDefault.push(this.deviceStorages[i].default);
+        const freeSpacePromise = this.deviceStorages[i].freeSpace();
+        const usedSpacePromise = this.deviceStorages[i].usedSpace();
+        Promise.all([freeSpacePromise, usedSpacePromise]).then((results) => {
+          storageData.freeSpace.push(results[0]);
+          storageData.usedSpace.push(results[1]);
+          storageData.totalSpace.push(results[0] + results[1]);
+        });
+      }
+    }
+  },
+  refresh: function (callback = false) {
+    if (this.onGoing && !callback) return;
+    if (callback) {
+      if (this.usedSpaceTmp.length != this.deviceStorages.length) return; // Will break if SD card was inserted/removed, requires better solution
+      debug.print("storageData.refresh() - Refresh successful");
+      this.storageName = this.storageNameTmp;
+      this.freeSpace = this.freeSpaceTmp;
+      this.usedSpace = this.usedSpaceTmp;
+      this.totalSpace = this.totalSpaceTmp;
+      this.isDefault = this.isDefaultTmp;
+      this.onGoing = false;
+      delete this.storageNameTmp;
+      delete this.freeSpaceTmp;
+      delete this.usedSpaceTmp;
+      delete this.totalSpaceTmp;
+      delete this.isDefaultTmp;
+      delete this.processOngoing;
+      return;
+    }
+    this.deviceStorages = navigator.getDeviceStorages("sdcard") || [];
+    this.storageNameTmp = [];
+    this.freeSpaceTmp = [];
+    this.usedSpaceTmp = [];
+    this.totalSpaceTmp = [];
+    this.isDefaultTmp = [];
+    this.onGoing = true;
+    for (let i = 0; i < this.deviceStorages.length; i++) {
+      this.storageNameTmp.push(this.deviceStorages[i].storageName);
+      this.isDefaultTmp.push(this.deviceStorages[i].default);
+      const freeSpacePromise = this.deviceStorages[i].freeSpace();
+      const usedSpacePromise = this.deviceStorages[i].usedSpace();
+      Promise.all([freeSpacePromise, usedSpacePromise]).then((results) => {
+        storageData.freeSpaceTmp.push(results[0]);
+        storageData.usedSpaceTmp.push(results[1]);
+        storageData.totalSpaceTmp.push(results[0] + results[1]);
+        storageData.refresh(true);
+      });
+    }
+  },
+};
 
 const batteryData = {
   data: null,
   initStatus: false,
-  init: function(){
-    if (!navigator.getBattery){
+  init: function () {
+    if (!navigator.getBattery) {
       return false;
     }
-    navigator.getBattery().then(function(result){
+    navigator.getBattery().then(function (result) {
       batteryData.data = result;
-      
     });
     return true;
   },
-  get: function(type){
-    if (!this.initStatus){
+  get: function (type) {
+    if (!this.initStatus) {
       return false;
     }
     let returnString = this.data[type];
-    if (type == "level"){
-      returnString = `${parseFloat(returnString)*100}%`;
-    }
-    else if (type == "temperature"){
+    if (type == "level") {
+      returnString = `${parseFloat(returnString) * 100}%`;
+    } else if (type == "temperature") {
       returnString += " °C";
-    }
-    else if (type == "status"){
-      if (this.data.charging){
-        if (this.data.chargingTime == 0){
-          returnString = "Charged"
-        }
-        else{
-          let remainingTime = ""
-          if (this.data.chargingTime != Infinity){
+    } else if (type == "status") {
+      if (this.data.charging) {
+        if (this.data.chargingTime == 0) {
+          returnString = "Charged";
+        } else {
+          let remainingTime = "";
+          if (this.data.chargingTime != Infinity) {
             let hours = this.data.chargingTime / 3600;
             const minutes = Math.ceil((hours - Math.floor(hours)) * 60);
             const additionalZero = minutes < 10 ? "0" : "";
             hours = Math.floor(hours);
-            remainingTime = `(${hours}:${additionalZero}${minutes} left)`
+            remainingTime = `(${hours}:${additionalZero}${minutes} left)`;
           }
-          returnString = `Charging ${remainingTime}`
+          returnString = `Charging ${remainingTime}`;
         }
-      }
-      else{
-        let remainingTime = ""
-        if (this.data.dischargingTime != Infinity){
+      } else {
+        let remainingTime = "";
+        if (this.data.dischargingTime != Infinity) {
           let hours = this.data.dischargingTime / 3600;
           const minutes = Math.ceil((hours - Math.floor(hours)) * 60);
           const additionalZero = minutes < 10 ? "0" : "";
           hours = Math.floor(hours);
-          remainingTime = `(${hours}:${additionalZero}${minutes} left)`
+          remainingTime = `(${hours}:${additionalZero}${minutes} left)`;
         }
-        returnString = `Discharging ${remainingTime}`
+        returnString = `Discharging ${remainingTime}`;
       }
     }
-    return returnString;  
-  }  
-
-}
-
+    return returnString;
+  },
+};
 
 const systemData = {
-  data:[],
-  init: function(){
+  data: [],
+  init: function () {
     const userAgent = navigator.userAgent;
-    if(navigator.hasFeature){
-      navigator.getFeature("hardware.memory").then(function(result){
+    if (navigator.hasFeature) {
+      navigator.getFeature("hardware.memory").then(function (result) {
         systemData.ram = result;
       });
-      navigator.getFeature("dom.apps.developer_mode").then(function(result){
+      navigator.getFeature("dom.apps.developer_mode").then(function (result) {
         systemData.developerMode = result;
       });
     }
-    let deviceStorages = navigator.getDeviceStorages("sdcard") || [];
-    if(deviceStorages.length > 0){
-      this.memoryName = [];
-      this.memorySize = [];
-      this.memoryUsedSpace = [];
-      for(let i = 0; i<deviceStorages.length; i++){
-        this.memoryName.push(deviceStorages[i].storageName);
-        deviceStorages[i].freeSpace().then(function(result){
-          systemData.memorySize.push(result);
-        });
-        deviceStorages[i].usedSpace().then(function(result){
-          systemData.memoryUsedSpace.push(result);
-        });
-      }
-    }
-    const nameString = userAgent.substring(userAgent.search(";") + 1)
-    this.model = nameString.substring(0,nameString.search(";")).split("_").join(" ");
-    this.osVersion = "KaiOS " + userAgent.substring(userAgent.toUpperCase().search("KAIOS") + 6);
+
+    const nameString = userAgent.substring(userAgent.search(";") + 1);
+    this.model = nameString
+      .substring(0, nameString.search(";"))
+      .split("_")
+      .join(" ");
+    this.osVersion =
+      "KaiOS " +
+      userAgent.substring(userAgent.toUpperCase().search("KAIOS") + 6);
     const firefoxString = userAgent.substring(userAgent.search("Firefox") + 8);
-    this.firefoxVersion = firefoxString.substring(0,firefoxString.search(" "));
-  }
+    this.firefoxVersion = firefoxString.substring(0, firefoxString.search(" "));
+  },
+};
 
+const displayData = {
+  init: function () {
+    this.resolution = `${window.screen.height}x${window.screen.width}`;
+    this.colorDepth = window.screen.colorDepth;
+    const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+    const commonDivisor = gcd(window.screen.width, window.screen.height);
+    const ratioWidth = window.screen.width / commonDivisor;
+    const ratioHeight = window.screen.height / commonDivisor;
+    this.aspectRatio = `${ratioHeight}:${ratioWidth}`;
+    this.screenOrientation = window.screen.mozOrientation;
+  },
+};
 
-}
+const cpuData = {
+  init: function () {
+    this.coresAmount = navigator.hardwareConcurrency;
+    const runs = 150000000;
+    const start = performance.now();
+    for (let i = runs; i > 0; i--) {
+      //pass
+    }
+    const end = performance.now();
+    const ms = end - start;
+    const cyclesPerRun = 2;
+    this.estimatedFrequency = ((runs / ms / 1000000) * cyclesPerRun).toFixed(2);
+  },
+};
 
-function getBluetoothInfo(type){
+function getBluetoothInfo(type) {
   const bluetoothData = navigator.mozBluetooth.defaultAdapter;
-  switch(type){ 
+  switch (type) {
     case "bluetooth-status":
-      return bluetoothData.state;
+      return (
+        bluetoothData.state[0].toUpperCase() + bluetoothData.state.slice(1)
+      );
     case "bluetooth-name":
       return bluetoothData.name;
     case "bluetooth-address":
@@ -770,145 +1026,173 @@ function getBluetoothInfo(type){
   }
 }
 
-function toggleBluetooth(){
+function toggleBluetooth() {
   const bluetoothData = navigator.mozBluetooth;
-  if(bluetoothData === undefined){
-    debug.print("toggleBluetooth() - No access to API")
+  if (bluetoothData === undefined) {
+    debug.print("toggleBluetooth() - No access to API");
     return false;
   }
-  if(bluetoothData.defaultAdapter.state === "disabled"){
+  if (bluetoothData.defaultAdapter.state === "disabled") {
     bluetoothData.defaultAdapter.enable();
-    debug.print("toggleBluetooth() - Bluetooth enabled")
-  }
-  else{
+    debug.print("toggleBluetooth() - Bluetooth enabled");
+  } else {
     bluetoothData.defaultAdapter.disable();
-    debug.print("toggleBluetooth() - Bluetooth disabled")
+    debug.print("toggleBluetooth() - Bluetooth disabled");
   }
   return true;
 }
 
-function getNetworkInfo(type, sim){
-    if (type.includes("wifi")){
+function getNetworkInfo(type, sim) {
+  if (type.includes("wifi")) {
     const wifiData = navigator.mozWifiManager;
     if (wifiData === undefined) return false;
-    else if(type === "network-wifi") return true;
+    else if (type === "network-wifi") return true;
     const wifiConnectionData = wifiData.connectionInformation;
     const wifiStatus = wifiData.enabled ? "Enabled" : "Disabled";
 
-  if (wifiStatus == "Enabled"){
-    switch (type){
-      case "network-wifi-type":
-        return `Wi-Fi (${wifiStatus})`;
-      case "network-wifi-ssid":
-        return `${wifiData.connection.network.ssid}`;
-      case "network-wifi-speed":
-        return `${wifiConnectionData.linkSpeed} Mbps`;
-      case "network-wifi-signal":
-        return `${wifiConnectionData.signalStrength} dBm`;
-      case "network-wifi-ip":
-        return wifiConnectionData.ipAddress;
-      case "network-wifi-frequency":
-        return `${wifiData.connection.network.frequency} MHz`;
-      case "network-wifi-internet":
-        return wifiData.hasInternet;
-      case "network-wifi-hidden":
-        return wifiData.connection.network.hidden;
-      case "network-wifi-mac":
-        return wifiData.macAddress;
+    if (wifiStatus == "Enabled") {
+      switch (type) {
+        case "network-wifi-type":
+          return `Wi-Fi (${wifiStatus})`;
+        case "network-wifi-ssid":
+          return `${wifiData.connection.network.ssid}`;
+        case "network-wifi-speed":
+          return `${wifiConnectionData.linkSpeed} Mbps`;
+        case "network-wifi-signal":
+          return `${wifiConnectionData.signalStrength} dBm`;
+        case "network-wifi-ip":
+          return wifiConnectionData.ipAddress;
+        case "network-wifi-frequency":
+          return `${wifiData.connection.network.frequency} MHz`;
+        case "network-wifi-internet":
+          return wifiData.hasInternet;
+        case "network-wifi-hidden":
+          return wifiData.connection.network.hidden;
+        case "network-wifi-mac":
+          return wifiData.macAddress;
       }
-  }
-  else{
-    return "Disabled"
-  }
-  }
-  else{
+    } else {
+      return "Disabled";
+    }
+  } else {
     if (navigator.mozMobileConnections === undefined) return false;
-  const mobileData = navigator.mozMobileConnections[sim];
-  const mobileStatus = mobileData.radioState ? "Enabled" : "Disabled";
-  if (mobileStatus == "Enabled"){
-    switch (type){
-    case "network-telephony-type":
-      return `Cell - SIM ${sim+1} (${mobileData.radioState ? "Enabled" : "Disabled"})`;
-    case "network-telephony-sim-provider":
-      return `${mobileData.data.network.longName || "Disconnected"}`
-    case "network-telephony-sim-type":
-      let activeType = mobileData.data.type ? mobileData.data.type.toUpperCase() : undefined;
-      if(!activeType){
-        activeType = mobileData.data.network.state === "connected" ? "GSM" : "Disconnected"; // if connected assume that it is GSM
+    const mobileData = navigator.mozMobileConnections[sim];
+    const mobileStatus = mobileData.radioState ? "Enabled" : "Disabled";
+    if (mobileStatus == "Enabled") {
+      let activeType = mobileData.data.type
+        ? mobileData.data.type.toUpperCase()
+        : undefined;
+      let activeSignal =
+        mobileData.signalStrength.lteSignalStrength === 99
+          ? undefined
+          : `${mobileData.signalStrength.lteSignalStrength} dBm`;
+      switch (type) {
+        case "network-telephony-type":
+          return `Cell - SIM ${sim + 1} (${
+            mobileData.radioState ? "Enabled" : "Disabled"
+          })`;
+        case "network-telephony-sim-provider":
+          return `${mobileData.data.network.longName || "Disconnected"}`;
+        case "network-telephony-sim-type":
+          if (!activeType) {
+            activeType =
+              mobileData.data.network.state === "connected"
+                ? "GSM"
+                : "Disconnected"; // if connected assume that it is GSM
+          }
+          return activeType;
+        case "network-telephony-sim-signal":
+          // GSM Signal strength described in section 8.5 (ETSI TS 127 007 V6.8.0) https://www.etsi.org/deliver/etsi_ts/127000_127099/127007/06.08.00_60/ts_127007v060800p.pdf
+          if (!activeSignal) {
+            activeSignal =
+              mobileData.signalStrength.gsmSignalStrength === 99
+                ? "Unknown"
+                : `${gsmSignalStrengthToDbm(
+                    mobileData.signalStrength.gsmSignalStrength
+                  )} dBm (${Math.round(
+                    (mobileData.signalStrength.gsmSignalStrength / 31) * 100
+                  )}%)`;
+          }
+          return activeSignal;
+        case "network-telephony-sim-roaming":
+          return mobileData.data.roaming;
+        case "network-telephony-sim-state":
+          return mobileData.voice.state;
+        case "network-telephony-sim-iccid":
+          return mobileData.iccId;
       }
-      return activeType;
-    case "network-telephony-sim-signal":
-      // GSM Signal strength described in section 8.5 (ETSI TS 127 007 V6.8.0) https://www.etsi.org/deliver/etsi_ts/127000_127099/127007/06.08.00_60/ts_127007v060800p.pdf
-      let activeSignal = mobileData.signalStrength.lteSignalStrength === 99 ? undefined : `${mobileData.signalStrength.lteSignalStrength} dBm`;
-      if (!activeSignal){
-        activeSignal = mobileData.signalStrength.gsmSignalStrength === 99 ? "Unknown" : `${gsmSignalStrengthToDbm(mobileData.signalStrength.gsmSignalStrength)} dBm (${Math.round(mobileData.signalStrength.gsmSignalStrength/31*100)}%)`
-      }
-      return activeSignal;
-    case "network-telephony-sim-roaming":
-      return mobileData.data.roaming;
-    case "network-telephony-sim-state":
-      return mobileData.voice.state;
-    case "network-telephony-sim-iccid":
-      return mobileData.iccId;
+    } else {
+      return "Disabled";
     }
   }
-  else{
-    return "Disabled"
-  }
-}
   function gsmSignalStrengthToDbm(gsmSignalStrength) {
     if (gsmSignalStrength === 0) {
       return -113;
     } else if (gsmSignalStrength === 1) {
       return -111;
     } else if (gsmSignalStrength >= 2 && gsmSignalStrength <= 30) {
-      let x1 = 2, y1 = -109;
-      let x2 = 30, y2 = -53;
-      return y1 + (gsmSignalStrength - x1) * (y2 - y1) / (x2 - x1);
+      let x1 = 2,
+        y1 = -109;
+      let x2 = 30,
+        y2 = -53;
+      return y1 + ((gsmSignalStrength - x1) * (y2 - y1)) / (x2 - x1);
     } else if (gsmSignalStrength === 31) {
       return -51;
     } else {
       return NaN;
     }
-  
-}
+  }
 }
 
 const cameraData = {
   cameraInfo: [],
   camerasList: undefined,
   initStatus: false,
-  init: function(){
-    if (!navigator.mozCameras){
+  init: function () {
+    if (!navigator.mozCameras) {
       return false;
     }
     this.camerasList = navigator.mozCameras.getListOfCameras();
-    if (this.camerasList.length > 0){
-      for(let i = 0; i < this.camerasList.length; i++){
-        navigator.mozCameras.getCamera(this.camerasList[i]).then(function(result){
-          cameraData.cameraInfo.push(result);
-        });
+    if (this.camerasList.length > 0) {
+      for (let i = 0; i < this.camerasList.length; i++) {
+        navigator.mozCameras
+          .getCamera(this.camerasList[i])
+          .then(function (result) {
+            cameraData.cameraInfo.push(result);
+          });
       }
       return true;
-    }
-    else{
+    } else {
       return false;
     }
   },
-  get: function(type,currentCameras){
-    if (!this.initStatus){
+  get: function (type, currentCameras) {
+    if (!this.initStatus) {
       return false;
     }
     const camera = this.cameraInfo[currentCameras];
-    const currentRecorder = this.cameraInfo[currentCameras].configuration.recorderProfile;
-    const recorder = this.cameraInfo[currentCameras].camera.capabilities.recorderProfiles[currentRecorder];
-    switch(type){
+    const currentRecorder =
+      this.cameraInfo[currentCameras].configuration.recorderProfile;
+    const recorder =
+      this.cameraInfo[currentCameras].camera.capabilities.recorderProfiles[
+        currentRecorder
+      ];
+    switch (type) {
       case "camera-name":
-        return this.camerasList[currentCameras];
+        return (
+          this.camerasList[currentCameras][0].toUpperCase() +
+          this.camerasList[currentCameras].slice(1)
+        );
       case "camera-id":
         return camera.camera.id;
       case "camera-photo-resolution":
-        return `${(camera.camera.capabilities.pictureSizes[0].width*camera.camera.capabilities.pictureSizes[0].height*1e-6).toFixed(2)} MP (${camera.camera.capabilities.pictureSizes[0].width}x${camera.camera.capabilities.pictureSizes[0].height})`;
+        return `${(
+          camera.camera.capabilities.pictureSizes[0].width *
+          camera.camera.capabilities.pictureSizes[0].height *
+          1e-6
+        ).toFixed(2)} MP (${camera.camera.capabilities.pictureSizes[0].width}x${
+          camera.camera.capabilities.pictureSizes[0].height
+        })`;
       case "camera-photo-focal":
         return `${camera.camera.focalLength.toFixed(2)} mm`;
       case "camera-video-resolution":
@@ -919,64 +1203,67 @@ const cameraData = {
         return recorder.video.framesPerSecond;
       case "camera-video-codec":
         return recorder.video.codec;
-      }
-  }
-}
-
-function getGpuInfo(type){
-  let canvas = document.createElement('canvas');
-  let gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-  if (!gl){
-    return "unknown"
-  }
-  else{
-    if (type == "gpu"){
-      return getUnmaskedInfo(gl).renderer
     }
-    else{
-      return getUnmaskedInfo(gl).vendor
+  },
+};
+
+function getGpuInfo(type) {
+  let canvas = document.createElement("canvas");
+  let gl =
+    canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+  if (!gl) {
+    return "unknown";
+  } else {
+    if (type == "gpu") {
+      return getUnmaskedInfo(gl).renderer;
+    } else {
+      return getUnmaskedInfo(gl).vendor;
     }
   }
 }
 
 function getUnmaskedInfo(gl) {
   var unMaskedInfo = {
-    renderer: '',
-    vendor: ''
+    renderer: "",
+    vendor: "",
   };
 
   var dbgRenderInfo = gl.getExtension("WEBGL_debug_renderer_info");
   if (dbgRenderInfo != null) {
-    unMaskedInfo.renderer = gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL);
+    unMaskedInfo.renderer = gl.getParameter(
+      dbgRenderInfo.UNMASKED_RENDERER_WEBGL
+    );
     unMaskedInfo.vendor = gl.getParameter(dbgRenderInfo.UNMASKED_VENDOR_WEBGL);
   }
 
   return unMaskedInfo;
 }
 
-function menuHover(row = undefined, pastRow = undefined, obj = undefined){
-  debug.print(`menuHover() - Row ${obj}${row} - Hover, Row ${obj}${pastRow}: Unhover`)
-  if(pastRow){
+function menuHover(row = undefined, pastRow = undefined, obj = undefined) {
+  debug.print(
+    `menuHover() - Row ${obj}${row} - Hover, Row ${obj}${pastRow}: Unhover`
+  );
+  if (pastRow) {
     const pastElement = document.getElementById(obj + pastRow);
-  if(pastElement){
-    pastElement.classList.remove("hovered");
+    if (pastElement) {
+      pastElement.classList.remove("hovered");
+    }
   }
-  }
-  if(row){
+  if (row) {
     const currentElement = document.getElementById(obj + row);
-    if(currentElement){
+    if (currentElement) {
       currentElement.classList.add("hovered");
     }
   }
 }
 
-function removeAllElementsInString(string,element){ // No support for replaceAll before firefox 77
+function removeAllElementsInString(string, element) {
+  // No support for replaceAll before firefox 77
   let newString = string;
-  while (newString.indexOf(element) > -1){
+  while (newString.indexOf(element) > -1) {
     newString = newString.replace(element, "");
   }
   return newString;
 }
-
 
 document.activeElement.addEventListener("keydown", controls.handleKeydown);
