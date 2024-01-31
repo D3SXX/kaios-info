@@ -1,3 +1,7 @@
+Build 0.0.19 from 31.01.2024
+Improved initialization at program startup
+Improved API error handling
+
 Build 0.0.18 from 30.01.2024
 Added "Storage" tab
     - Added rows for type (internal or external), total space available, total space used and default status

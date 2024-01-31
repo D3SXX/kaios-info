@@ -1,6 +1,6 @@
 "use strict";
 
-const buildInfo = ["0.0.18", "30.01.2024"];
+const buildInfo = ["0.0.19", "31.01.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -10,18 +10,33 @@ fetch("src/locale.json")
   .then((data) => initProgram(data));
 
 function initProgram(data) {
-  systemData.init(); // make a better initialization for program later
-  displayData.init();
-  cpuData.init();
-  storageData.init();
-  batteryData.initStatus = batteryData.init();
-  cameraData.initStatus = cameraData.init();
-  navigator.mozBluetooth; // Initialize mozBluetooth
-  const userLocale = navigator.language;
-  localeData = data[userLocale];
-  if (!localeData) {
-    localeData = data["en-US"];
+  const initFunctions = [
+    (callback) => systemData.init(callback),
+    (callback) => displayData.init(callback),
+    (callback) => cpuData.init(callback),
+    (callback) => gpuData.init(callback),
+    (callback) => storageData.init(callback),
+    (callback) => batteryData.init(callback),
+    (callback) => cameraData.init(callback),
+  ];
+  let completedCount = 0;
+  function onInitComplete(description = "") {
+    completedCount++;
+    debug.print("initialized " + description);
+    if (completedCount === initFunctions.length) {
+      finishInitialization(data);
+    }
   }
+  initFunctions.forEach((initFunction) => {
+    initFunction(onInitComplete);
+  });
+}
+
+function finishInitialization(data) {
+  navigator.mozBluetooth;
+  const userLocale = navigator.language;
+  localeData = data[userLocale] || data["en-US"];
+
   console.log(`KaiOS Info ver. ${buildInfo[0]} initialized`);
   menu.draw(1);
 }
@@ -352,11 +367,18 @@ const menu = {
         break;
       case 4:
         navbarEntries = `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="active">${localeData[4]["index"]}</span></span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
-        menu = `<ul>
+        if (gpuData.initStatus) {
+          menu = `<ul>
         <li id="1">${localeData[4]["1"]}: ${getInfoString("gpu")}</li>
         <li id="2">${localeData[4]["2"]}: ${getInfoString("gpu-man")}</li>
         </ul>`;
         controls.rowLimit = 2;
+        } else {
+          menu += `<ul><li id="${rowCount++}">${
+            localeData[0]["errorOnApi"]
+          }</li></ul>`;
+          controls.rowLimit = 1;
+        }
         break;
       case 5:
         navbarEntries = `<span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="active">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
@@ -400,6 +422,7 @@ const menu = {
               )}</li>
               `;
             }
+            menu += "</ul>";
             rowCount -= 1;
           } else {
             menu += `<li id="${rowCount++}">${
@@ -407,35 +430,50 @@ const menu = {
             }</li>`;
           }
         } else {
-          menu += `<li id="${rowCount++}">${localeData[0]["errorOnApi"]}</li>`;
+          if (returnOnlyData) {
+            menu = [`${localeData[0]["errorOnApi"]}`];
+          } else {
+            menu += `<ul><li id="1">${localeData[0]["errorOnApi"]}</li></ul>`;
+          }
+          rowCount = 1;
         }
-        menu += "</ul>";
         controls.rowLimit = rowCount;
         break;
       case 6:
         navbarEntries = `<span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="active">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
-        if (returnOnlyData) {
-          menu = [
-            `${localeData[6]["1"]}: ${getInfoString("battery-level")}`,
-            `${localeData[6]["2"]}: ${getInfoString("battery-health")}`,
-            `${localeData[6]["3"]}: ${getInfoString("battery-status")}`,
-            `${localeData[6]["4"]}: ${getInfoString("battery-temperature")}`,
-          ];
-        } else {
-          menu = `<ul>
+        if (batteryData.initStatus) {
+          if (returnOnlyData) {
+            menu = [
+              `${localeData[6]["1"]}: ${getInfoString("battery-level")}`,
+              `${localeData[6]["2"]}: ${getInfoString("battery-health")}`,
+              `${localeData[6]["3"]}: ${getInfoString("battery-status")}`,
+              `${localeData[6]["4"]}: ${getInfoString("battery-temperature")}`,
+            ];
+          } else {
+            menu = `<ul>
         <li id="1">${localeData[6]["1"]}: ${getInfoString("battery-level")}</li>
         <li id="2">${localeData[6]["2"]}: ${getInfoString(
-            "battery-health"
-          )}</li>
+              "battery-health"
+            )}</li>
         <li id="3">${localeData[6]["3"]}: ${getInfoString(
-            "battery-status"
-          )}</li>
+              "battery-status"
+            )}</li>
         <li id="4">${localeData[6]["4"]}: ${getInfoString(
-            "battery-temperature"
-          )}</li>
+              "battery-temperature"
+            )}</li>
         </ul>`;
+          }
+          controls.rowLimit = 4;
+        } else {
+          if (returnOnlyData) {
+            menu = [`${localeData[0]["errorOnApi"]}`];
+          } else {
+            menu = `<ul><li id="${rowCount++}">${
+              localeData[0]["errorOnEmptyList"]
+            }</li></ul>`;
+          }
+          controls.rowLimit = 1;
         }
-        controls.rowLimit = 4;
         this.enableRefresh = true;
         break;
       case 7:
@@ -654,9 +692,12 @@ const menu = {
             );
             rowCount += 4;
           }
+          if (storageData.apiAccess === false) {
+            menu = [`${localeData[0]["errorOnApi"]}`];
+            rowCount = 2;
+          }
         } else {
           menu = "<ul>";
-
           for (let i = 0; i < storageData.deviceStorages.length; i++) {
             menu += `
             <li id="${rowCount++}">${localeData[9]["1"]}: ${getInfoString(
@@ -678,6 +719,10 @@ const menu = {
              `;
           }
           menu += "</ul>";
+          if (storageData.apiAccess === false) {
+            menu += `<ul><li id="1">${localeData[0]["errorOnApi"]}</li></ul>`;
+            rowCount = 2;
+          }
         }
         storageData.refresh();
         controls.rowLimit = rowCount - 1;
@@ -770,8 +815,9 @@ function getInfoString(item, arg = undefined) {
     case "cpu-frequency":
       return `~${cpuData.estimatedFrequency} GHz`;
     case "gpu":
+      return gpuData.model;
     case "gpu-man":
-      return getGpuInfo(item);
+      return gpuData.manufacturer;
     case "camera-name":
     case "camera-id":
     case "camera-photo-resolution":
@@ -840,7 +886,17 @@ function getInfoString(item, arg = undefined) {
 }
 
 const storageData = {
-  init: function () {
+  apiAccess: undefined,
+  init: function (callback) {
+    if (navigator.getDeviceStorages === undefined) {
+      this.apiAccess = false;
+      this.deviceStorages = [];
+      if (typeof callback === "function") {
+        callback("storage data (API Access failed)");
+      }
+      return;
+    }
+    this.apiAccess = true;
     this.deviceStorages = navigator.getDeviceStorages("sdcard") || [];
     if (this.deviceStorages.length > 0) {
       this.storageName = [];
@@ -857,11 +913,19 @@ const storageData = {
           storageData.freeSpace.push(results[0]);
           storageData.usedSpace.push(results[1]);
           storageData.totalSpace.push(results[0] + results[1]);
+          if (typeof callback === "function") {
+            callback(
+              `storage data (${this.storageName[this.storageName.length - 1]})`
+            );
+          }
         });
       }
     }
   },
   refresh: function (callback = false) {
+    if (this.apiAccess === false) {
+      return;
+    }
     if (this.onGoing && !callback) return;
     if (callback) {
       if (this.usedSpaceTmp.length != this.deviceStorages.length) return; // Will break if SD card was inserted/removed, requires better solution
@@ -904,15 +968,21 @@ const storageData = {
 
 const batteryData = {
   data: null,
-  initStatus: false,
-  init: function () {
+  init: function (callback) {
     if (!navigator.getBattery) {
-      return false;
+      if (typeof callback === "function") {
+        callback("battery data (API Access failed)");
+      }
+      this.initStatus = false;
+      return;
     }
+    this.initStatus = true;
     navigator.getBattery().then(function (result) {
       batteryData.data = result;
+      if (typeof callback === "function") {
+        callback("battery data");
+      }
     });
-    return true;
   },
   get: function (type) {
     if (!this.initStatus) {
@@ -956,17 +1026,8 @@ const batteryData = {
 
 const systemData = {
   data: [],
-  init: function () {
+  init: function (callback) {
     const userAgent = navigator.userAgent;
-    if (navigator.hasFeature) {
-      navigator.getFeature("hardware.memory").then(function (result) {
-        systemData.ram = result;
-      });
-      navigator.getFeature("dom.apps.developer_mode").then(function (result) {
-        systemData.developerMode = result;
-      });
-    }
-
     const nameString = userAgent.substring(userAgent.search(";") + 1);
     this.model = nameString
       .substring(0, nameString.search(";"))
@@ -977,11 +1038,30 @@ const systemData = {
       userAgent.substring(userAgent.toUpperCase().search("KAIOS") + 6);
     const firefoxString = userAgent.substring(userAgent.search("Firefox") + 8);
     this.firefoxVersion = firefoxString.substring(0, firefoxString.search(" "));
+    if (navigator.hasFeature) {
+      const getMemoryPromise = navigator.getFeature("hardware.memory");
+      const getDeveloperModePromise = navigator.getFeature(
+        "dom.apps.developer_mode"
+      );
+      Promise.all([getMemoryPromise, getDeveloperModePromise]).then(
+        (results) => {
+          systemData.ram = results[0];
+          systemData.developerMode = results[1];
+          if (typeof callback === "function") {
+            callback("system data");
+          }
+        }
+      );
+    } else {
+      if (typeof callback === "function") {
+        callback("system data (1/2 API Access failed)");
+      }
+    }
   },
 };
 
 const displayData = {
-  init: function () {
+  init: function (callback) {
     this.resolution = `${window.screen.height}x${window.screen.width}`;
     this.colorDepth = window.screen.colorDepth;
     const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
@@ -990,11 +1070,14 @@ const displayData = {
     const ratioHeight = window.screen.height / commonDivisor;
     this.aspectRatio = `${ratioHeight}:${ratioWidth}`;
     this.screenOrientation = window.screen.mozOrientation;
+    if (typeof callback === "function") {
+      callback("display data");
+    }
   },
 };
 
 const cpuData = {
-  init: function () {
+  init: function (callback) {
     this.coresAmount = navigator.hardwareConcurrency;
     const runs = 150000000;
     const start = performance.now();
@@ -1005,6 +1088,9 @@ const cpuData = {
     const ms = end - start;
     const cyclesPerRun = 2;
     this.estimatedFrequency = ((runs / ms / 1000000) * cyclesPerRun).toFixed(2);
+    if (typeof callback === "function") {
+      callback("CPU data");
+    }
   },
 };
 
@@ -1147,12 +1233,16 @@ function getNetworkInfo(type, sim) {
 const cameraData = {
   cameraInfo: [],
   camerasList: undefined,
-  initStatus: false,
-  init: function () {
+  init: function (callback) {
     if (!navigator.mozCameras) {
-      return false;
+      if (typeof callback === "function") {
+        callback("camera data (API Access failed)");
+      }
+      cameraData.initStatus = false;
+      return;
     }
     this.camerasList = navigator.mozCameras.getListOfCameras();
+    cameraData.initStatus = true;
     if (this.camerasList.length > 0) {
       for (let i = 0; i < this.camerasList.length; i++) {
         navigator.mozCameras
@@ -1161,9 +1251,9 @@ const cameraData = {
             cameraData.cameraInfo.push(result);
           });
       }
-      return true;
-    } else {
-      return false;
+      if (typeof callback === "function") {
+        callback("camera data");
+      }
     }
   },
   get: function (type, currentCameras) {
@@ -1207,37 +1297,45 @@ const cameraData = {
   },
 };
 
-function getGpuInfo(type) {
-  let canvas = document.createElement("canvas");
-  let gl =
-    canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-  if (!gl) {
-    return "unknown";
-  } else {
-    if (type == "gpu") {
-      return getUnmaskedInfo(gl).renderer;
+const gpuData = {
+  init: function (callback) {
+    const canvas = document.createElement("canvas");
+    const gl =
+      canvas.getContext("experimental-webgl") || canvas.getContext("webgl"); // KaiOS 2.5 only supports Experimental-webgl, so start there
+    if (gl) {
+      this.model = this.getUnmaskedInfo(gl).renderer;
+      this.manufacturer = this.getUnmaskedInfo(gl).vendor;
+      this.initStatus = true;
+      if (typeof callback === "function") {
+        callback("GPU data");
+      }
     } else {
-      return getUnmaskedInfo(gl).vendor;
+      if (typeof callback === "function") {
+        callback("GPU data (API Access failed)");
+      }
+      this.initStatus = false;
     }
-  }
-}
+  },
+  getUnmaskedInfo: function (gl) {
+    let unMaskedInfo = {
+      renderer: "",
+      vendor: "",
+    };
 
-function getUnmaskedInfo(gl) {
-  var unMaskedInfo = {
-    renderer: "",
-    vendor: "",
-  };
-
-  var dbgRenderInfo = gl.getExtension("WEBGL_debug_renderer_info");
-  if (dbgRenderInfo != null) {
-    unMaskedInfo.renderer = gl.getParameter(
-      dbgRenderInfo.UNMASKED_RENDERER_WEBGL
-    );
-    unMaskedInfo.vendor = gl.getParameter(dbgRenderInfo.UNMASKED_VENDOR_WEBGL);
-  }
-
-  return unMaskedInfo;
-}
+    let dbgRenderInfo = gl.getExtension("WEBGL_debug_renderer_info");
+    if (dbgRenderInfo != null) {
+      unMaskedInfo.renderer = gl.getParameter(
+        dbgRenderInfo.UNMASKED_RENDERER_WEBGL
+      );
+      unMaskedInfo.vendor = gl.getParameter(
+        dbgRenderInfo.UNMASKED_VENDOR_WEBGL
+      );
+    } else {
+      return "Unknown";
+    }
+    return unMaskedInfo;
+  },
+};
 
 function menuHover(row = undefined, pastRow = undefined, obj = undefined) {
   debug.print(
