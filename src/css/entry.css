@@ -21,7 +21,7 @@
     list-style-type: none;
 }
 .entry li.hovered {
-    background-color: #db53fd;
+    background-color: #79c761;
     color: #ffffff;
     animation-name: lihover;
     animation-duration: 0.2s;
@@ -53,7 +53,7 @@
 
 @keyframes lihover{
     from {background-color: white;color: black;}
-    to {background-color: #db53fd;color: #ffffff;}
+    to {background-color: #79c761;color: #ffffff;}
 }
 @keyframes imghover {
     0% {-webkit-filter: invert(1);filter: invert(1);}
@@ -126,7 +126,7 @@
     content: "";
     width: 100%;
     height: 100%;
-    background: #db53fd;
+    background: #79c761;
     display: block;
     transform: scale(0);
     opacity: 1;

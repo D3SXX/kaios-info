@@ -10,7 +10,7 @@
 }
 
 .navbar span.hovered{
-	border-bottom:2px solid #db53fd;
+	border-bottom:2px solid #79c761;
 	animation-name: tohover;
 	border-width: 1px 5px;
 	animation-duration: 0.5s;
@@ -18,7 +18,7 @@
 }
 @keyframes tohover {
 0%	{color:gray;border-bottom: 4px solid white;border-bottom-width: 0px;}
-100% {color:black;border-color: #db53fd;border-bottom-width: auto;}
+100% {color:black;border-color: #79c761;border-bottom-width: auto;}
 
 }
 .navbar span{

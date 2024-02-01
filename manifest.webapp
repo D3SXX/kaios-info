@@ -1,5 +1,5 @@
 {
-  "version": "0.0.19",
+  "version": "0.0.20",
   "name": "KaiOS Info",
   "subtitle": "View information about your KaiOS device",
   "description": "View information about your KaiOS device",
@@ -7,9 +7,9 @@
   "launch_path": "/index.html",
   "fullscreen": false,
   "orientation": "portrait",
-  "theme": "#9b27af",
-  "theme_color": "#9b27af",
-  "background_color": "#9b27af",
+  "theme": "#79c761",
+  "theme_color": "#79c761",
+  "background_color": "#79c761",
   "icons": {
     "56": "/assets/icons/KaiOS-Info_56.png",
     "112": "/assets/icons/KaiOS-Info_112.png"

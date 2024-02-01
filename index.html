@@ -19,6 +19,7 @@
     <link rel="stylesheet" type="text/css" href="./src/css/options.css">
     <link rel="stylesheet" type="text/css" href="./src/css/logs.css">
     <link rel="stylesheet" type="text/css" href="./src/css/toast.css">
+    <link rel="stylesheet" type="text/css" href="./src/css/loading.css">
   </head>
 
   <body>
@@ -31,7 +32,6 @@
       <div id="nav-bar" class="navbar">
         <!-- Navigation bar -->
       </div>
-
       <div id="menu-container" class="entry">
         <!-- Entries -->
       </div>
@@ -47,7 +47,10 @@
       <div id="debug" class="debug">
         <!-- Build info and debug info -->
       </div>
-
+      <div id="loading" class="loading">
+        <!-- Loading container -->
+        <div class="container"><div class="logo"><img src="./assets/icons/KaiOS-Info_112.png" alt="KaiOS Info"></div><div class="title">KaiOS Info<br><div class="small-title">By D3SXX</div></div><div class="loading-bar">Initializing</br><progress max="100" value="0" id="progress-bar-loading"></progress> <div class="loading-bar-text" id="loading-bar-text">Starting...</div></div> </div>
+      </div>
       <div id="softkey">
         <label id="left"></label>
         <label id="center"></label>

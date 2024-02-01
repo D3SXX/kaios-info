@@ -6,8 +6,8 @@
     height: auto;
     right:0px;
     background-color: white;
-    border-left: 1px solid purple;
-    border-top: 1px solid purple;
+    border-left: 1px solid green;
+    border-top: 1px solid green;
     box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
     display: flex;
     flex-direction: column;
@@ -29,7 +29,7 @@
 
 
 #menu .menuItem.hovered{
-    background-color: #db53fd;
+    background-color: #79c761;
     color:white;
     animation: menuhover 0.2s;
 
@@ -44,5 +44,5 @@
 
 @keyframes menuhover{
     from {background-color: white;color: black;}
-    to {background-color: #db53fd;color: #ffffff;}
+    to {background-color: #79c761;color: #ffffff;}
 }

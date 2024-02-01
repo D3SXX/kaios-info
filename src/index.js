@@ -1,6 +1,6 @@
 "use strict";
 
-const buildInfo = ["0.0.19", "31.01.2024"];
+const buildInfo = ["0.0.20", "01.02.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -20,8 +20,11 @@ function initProgram(data) {
     (callback) => cameraData.init(callback),
   ];
   let completedCount = 0;
-  function onInitComplete(description = "") {
+  function onInitComplete(description = "", skipCount = false) {
+    if(!skipCount){
     completedCount++;
+    }
+    draw.updateProgressBar(completedCount,initFunctions.length, "Initialized " + description);
     debug.print("initialized " + description);
     if (completedCount === initFunctions.length) {
       finishInitialization(data);
@@ -36,9 +39,9 @@ function finishInitialization(data) {
   navigator.mozBluetooth;
   const userLocale = navigator.language;
   localeData = data[userLocale] || data["en-US"];
-
   console.log(`KaiOS Info ver. ${buildInfo[0]} initialized`);
   menu.draw(1);
+  draw.closeLoadingPage();
 }
 
 const debug = {
@@ -217,6 +220,17 @@ const controls = {
     debug.show(e.key);
   },
 };
+
+const draw = {
+  updateProgressBar: function(value,maxValue, text){
+    document.getElementById("progress-bar-loading").max = maxValue
+    document.getElementById("progress-bar-loading").value = value
+    document.getElementById("loading-bar-text").innerText = text;
+  },
+  closeLoadingPage: function(){
+    document.getElementById("loading").classList.add('hidden');
+  }
+}
 
 const menu = {
   hideList: [],
@@ -915,7 +929,8 @@ const storageData = {
           storageData.totalSpace.push(results[0] + results[1]);
           if (typeof callback === "function") {
             callback(
-              `storage data (${this.storageName[this.storageName.length - 1]})`
+              `storage data (${this.storageName[storageData.freeSpace.length - 1]})`,
+              storageData.freeSpace.length < storageData.deviceStorages.length
             );
           }
         });
