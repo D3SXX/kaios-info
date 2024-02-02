@@ -1,3 +1,9 @@
+Build 0.0.21 from 02.02.2024
+Added side menu
+Added option to force disable auto refreshing in program 
+Added software keys at the bottom of screen
+Improved navigations
+
 Build 0.0.20 from 01.02.2024
 Added initialization loading screen at the start of the program
 storageData init now correctly await for multiple storages

@@ -1,7 +1,7 @@
 {
     "en-US":
        [   
-           {"softLeftClear":"Clear","softLeftOptions":"Options","softCenter":"Select","softRight":"Menu","close":"Close","errorOnApi":"Couldn't get access to Api","errorOnEmptyList":"Device list is empty"
+           {"softLeftClear":"Clear","softLeftToggle":"Toggle","softCenter":"Select","softRight":"Menu","close":"Close","errorOnApi":"Couldn't get access to Api","errorOnEmptyList":"Device list is empty","sidemenu-exit":"Exit","sidemenu-togglerefresh":"Toggle auto refresh","sidemenu-about":"About"
             },
             {"1":"Model","2":"OS","3":"Firefox Version","4":"RAM","5":"Developer Mode","index":"System"},
             {"1":"Resolution","2":"Depth","3":"Aspect ratio","4":"Orientation","index":"Display"},

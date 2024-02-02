@@ -1,6 +1,6 @@
 "use strict";
 
-const buildInfo = ["0.0.20", "01.02.2024"];
+const buildInfo = ["0.0.21", "02.02.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -41,6 +41,8 @@ function finishInitialization(data) {
   localeData = data[userLocale] || data["en-US"];
   console.log(`KaiOS Info ver. ${buildInfo[0]} initialized`);
   menu.draw(1);
+  softkeys.draw();
+  draw.initSideMenu();
   draw.closeLoadingPage();
 }
 
@@ -173,10 +175,28 @@ const controls = {
     );
   },
   handleEnter: function () {
+    if(draw.sideMenuState){
+      switch(controls.rowMenu){
+        case 1:
+          window.close();
+          break;
+        case 2:
+          menu.forceDisableRefresh = !menu.forceDisableRefresh;
+          debug.print(`controls.handleEnter() - forceDisableRefresh is set to ${menu.forceDisableRefresh}`)
+          break;
+        case 3:
+          break;
+      }
+      draw.toggleSideMenu();
+    }
     switch (this.col) {
       case 7:
         menu.toggleList();
         break;
+    }
+  },
+  handleSoftLeft: function(){
+    switch (this.col) {
       case 8:
         toggleBluetooth();
         menu.refreshMenu();
@@ -185,15 +205,24 @@ const controls = {
   },
   handleKeydown: function (e) {
     debug.print(`${e.key} triggered`);
-    let pastRow = controls.row;
+    let rowType = "row"
+    let hoverArg = "";
+    if(draw.sideMenuState){
+      rowType = rowType + "Menu";
+      hoverArg = "m";
+      if(e.key === "ArrowRight" || e.key === "ArrowLeft" || e.key === "SoftLeft"){
+        return;
+      }
+    }
+    let pastRow = controls[rowType];
     switch (e.key) {
       case "ArrowUp":
-        controls.decrease("row");
-        menuHover(controls.row, pastRow, "");
+        controls.decrease(rowType);
+        menuHover(controls[rowType], pastRow, hoverArg);
         break;
       case "ArrowDown":
-        controls.increase("row");
-        menuHover(controls.row, pastRow, "");
+        controls.increase(rowType);
+        menuHover(controls[rowType], pastRow, hoverArg);
         break;
       case "ArrowRight":
         controls.increase("col");
@@ -207,8 +236,10 @@ const controls = {
         controls.handleEnter();
         break;
       case "SoftRight":
+        draw.toggleSideMenu();
         break;
       case "SoftLeft":
+        controls.handleSoftLeft();
         break;
       case "#":
         debug.toggle();
@@ -217,11 +248,49 @@ const controls = {
         close();
         break;
     }
+    softkeys.draw();
     debug.show(e.key);
   },
 };
 
+const softkeys = {
+  softkeysArr: ["","",""],
+  default: function(){
+    this.softkeysArr[0] = "";
+    this.softkeysArr[1] = localeData[0]["softCenter"];
+    this.softkeysArr[2] = localeData[0]["softRight"];
+  },
+  get: function(){
+    if(draw.sideMenuState){
+      this.softkeysArr[0] = "";
+      this.softkeysArr[1] = "";
+      this.softkeysArr[2] = localeData[0]["close"];
+      return;
+    }
+    this.default();
+    const col = controls["col"];
+    const row = controls["row"];
+    switch(col){
+      case 8:
+        if (row === 1){
+          this.softkeysArr[0] = localeData[0]["softLeftToggle"]; 
+        }
+    }
+  },
+  draw: function(){
+    this.get();
+    let softkeys = "";
+    const softkeyContainer = document.getElementById("softkey");
+  
+    softkeys += `<label id="left">${this.softkeysArr[0]}</label>`
+    softkeys += `<label id="center">${this.softkeysArr[1]}</label>`
+    softkeys += `<label id="right">${this.softkeysArr[2]}</label>`
+    softkeyContainer.innerHTML = softkeys;
+  }
+}
+
 const draw = {
+  sideMenuState: false,
   updateProgressBar: function(value,maxValue, text){
     document.getElementById("progress-bar-loading").max = maxValue
     document.getElementById("progress-bar-loading").value = value
@@ -229,12 +298,35 @@ const draw = {
   },
   closeLoadingPage: function(){
     document.getElementById("loading").classList.add('hidden');
+  },
+  initSideMenu(){
+    const menuElements = [localeData[0]["sidemenu-exit"],localeData[0]["sidemenu-togglerefresh"],localeData[0]["sidemenu-about"]];
+    const element = document.getElementById("menu");
+    let menuData = "";
+    for (let i = 0; i<menuElements.length; i++){
+      menuData += `<div id="m${i+1}" class="menuItem">${menuElements[i]}</div>`;
+    }
+    element.innerHTML = menuData;
+    controls.rowMenuLimit = menuElements.length;
+    controls.rowMenu = 1;
+    menuHover(1,undefined,"m");
+    debug.print("draw.initSideMenu - Side menu initialized")
+  },
+  toggleSideMenu(){
+    this.sideMenuState = !this.sideMenuState;
+    if(this.sideMenuState){
+      document.getElementById("menu").classList.remove("hidden")
+    }
+    else{
+      document.getElementById("menu").classList.add("hidden")
+    }
   }
 }
 
 const menu = {
   hideList: [],
   enableRefresh: false,
+  forceDisableRefresh: false,
   timeoutID: undefined,
   splitAtRow: [],
   draw: function (col = controls.col) {
@@ -317,7 +409,7 @@ const menu = {
     }
   },
   refreshMenu: function () {
-    if (this.enableRefresh) {
+    if (this.enableRefresh && !this.forceDisableRefresh) {
       debug.print("menu.refreshMenu - Refreshing menu");
       const data = this.getMenuData(controls.col, true);
       for (let i = 1; i < data.length + 1; i++) {
