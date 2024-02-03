@@ -1,6 +1,6 @@
 "use strict";
 
-const buildInfo = ["0.0.21", "02.02.2024"];
+const buildInfo = ["0.0.22", "03.02.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -40,10 +40,11 @@ function finishInitialization(data) {
   const userLocale = navigator.language;
   localeData = data[userLocale] || data["en-US"];
   console.log(`KaiOS Info ver. ${buildInfo[0]} initialized`);
-  menu.draw(1);
   softkeys.draw();
+  draw.initListMenu();
   draw.initSideMenu();
   draw.closeLoadingPage();
+  draw.toggleListMenu();
 }
 
 const debug = {
@@ -178,7 +179,7 @@ const controls = {
     if(draw.sideMenuState){
       switch(controls.rowMenu){
         case 1:
-          window.close();
+          draw.toggleListMenu();
           break;
         case 2:
           menu.forceDisableRefresh = !menu.forceDisableRefresh;
@@ -186,6 +187,8 @@ const controls = {
           break;
         case 3:
           break;
+        case 4:
+          window.close();
       }
       draw.toggleSideMenu();
     }
@@ -213,6 +216,38 @@ const controls = {
       if(e.key === "ArrowRight" || e.key === "ArrowLeft" || e.key === "SoftLeft"){
         return;
       }
+    }
+    if(draw.listMenuState){
+        hoverArg = "";
+        let pastCol = controls.col;
+        switch(e.key){
+          case "ArrowRight":
+          case "ArrowDown":
+            controls.increase("col");
+            controls.row = controls.col;
+            menuHover(controls.col, pastCol, hoverArg);
+            scrollHide();
+            return;
+          case "ArrowLeft":
+          case "ArrowUp":
+            controls.decrease("col");
+            controls.row = controls.col;
+            menuHover(controls.col, pastCol, hoverArg);
+            scrollHide()
+            return;
+          case "Enter":
+            draw.toggleListMenu();
+            return;
+          case "#":
+              debug.toggle();
+              return;
+          case "Backspace":
+            close();
+            return;
+          default:
+            return;
+        }
+
     }
     let pastRow = controls[rowType];
     switch (e.key) {
@@ -245,7 +280,8 @@ const controls = {
         debug.toggle();
         break;
       case "Backspace":
-        close();
+        e.preventDefault();
+        draw.toggleListMenu();
         break;
     }
     softkeys.draw();
@@ -272,7 +308,7 @@ const softkeys = {
     const row = controls["row"];
     switch(col){
       case 8:
-        if (row === 1){
+        if (row === 1 && getInfoString("bluetooth")){
           this.softkeysArr[0] = localeData[0]["softLeftToggle"]; 
         }
     }
@@ -300,7 +336,7 @@ const draw = {
     document.getElementById("loading").classList.add('hidden');
   },
   initSideMenu(){
-    const menuElements = [localeData[0]["sidemenu-exit"],localeData[0]["sidemenu-togglerefresh"],localeData[0]["sidemenu-about"]];
+    const menuElements = [localeData[0]["sidemenu-openlistmenu"],localeData[0]["sidemenu-togglerefresh"],localeData[0]["sidemenu-about"],[localeData[0]["sidemenu-exit"]]];
     const element = document.getElementById("menu");
     let menuData = "";
     for (let i = 0; i<menuElements.length; i++){
@@ -315,11 +351,42 @@ const draw = {
   toggleSideMenu(){
     this.sideMenuState = !this.sideMenuState;
     if(this.sideMenuState){
-      document.getElementById("menu").classList.remove("hidden")
+      document.getElementById("menu").classList.remove("hidden");
     }
     else{
-      document.getElementById("menu").classList.add("hidden")
+      document.getElementById("menu").classList.add("hidden");
     }
+  },
+  initListMenu(){
+    const element = document.getElementById("menu-list");
+    let menuData = "<ul>";
+    for(let i = 1; i<localeData.length; i++){
+      menuData += `<li id="${i}" class="menuItem">${localeData[i]["index"]}</li>`;
+    }
+    menuData += "</ul>"
+    element.innerHTML = menuData;
+  },
+  toggleListMenu(){
+    this.listMenuState = !this.listMenuState;
+    if (this.listMenuState){
+      menu.forceDisableRefresh = true;
+      menu.splitAtRow = [];
+      document.getElementById("menu-list").classList.remove("hidden");
+      controls.colLimit = localeData.length - 1;
+      controls.rowLimit = localeData.length - 1;
+      controls.row = controls.col;
+      document.getElementById("menu-container").innerHTML = "";
+      menuHover(controls.col, undefined,"");
+      scrollHide();
+    }
+    else{
+      menu.forceDisableRefresh = false;
+      menuHover(undefined,controls.col,"")
+      document.getElementById("menu-list").classList.add("hidden");
+      menu.draw();
+      softkeys.draw();
+    }
+
   }
 }
 
@@ -843,7 +910,10 @@ const menu = {
 };
 
 function scrollHide() {
-  const limit = 4;
+  let limit = 4;
+  if(draw.listMenuState){
+    limit = 5;
+  }
   const entriesAmount = controls.rowLimit;
   if (entriesAmount <= limit) {
     return;
@@ -1169,14 +1239,26 @@ const systemData = {
 
 const displayData = {
   init: function (callback) {
-    this.resolution = `${window.screen.height}x${window.screen.width}`;
+    this.screenOrientation = window.screen.mozOrientation || window.screen.orientation.type;
+    if(this.screenOrientation.includes("portrait")){
+      this.screenOrientation = "Portrait"
+      this.resolution = `${window.screen.height}x${window.screen.width}`;
+    }
+    else{
+      this.screenOrientation = "Landscape"
+      this.resolution = `${window.screen.width}x${window.screen.height}`;
+    }
     this.colorDepth = window.screen.colorDepth;
     const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
     const commonDivisor = gcd(window.screen.width, window.screen.height);
     const ratioWidth = window.screen.width / commonDivisor;
     const ratioHeight = window.screen.height / commonDivisor;
-    this.aspectRatio = `${ratioHeight}:${ratioWidth}`;
-    this.screenOrientation = window.screen.mozOrientation;
+    if(this.screenOrientation === "Portrait"){
+      this.aspectRatio = `${ratioHeight}:${ratioWidth}`;
+    }
+    else{
+      this.aspectRatio = `${ratioWidth}:${ratioHeight}`;
+    }
     if (typeof callback === "function") {
       callback("display data");
     }
@@ -1341,14 +1423,23 @@ const cameraData = {
   cameraInfo: [],
   camerasList: undefined,
   init: function (callback) {
-    if (!navigator.mozCameras) {
+    if (typeof navigator.mozCameras !== "object") {
       if (typeof callback === "function") {
         callback("camera data (API Access failed)");
       }
       cameraData.initStatus = false;
       return;
     }
-    this.camerasList = navigator.mozCameras.getListOfCameras();
+    try{
+      this.camerasList = navigator.mozCameras.getListOfCameras();
+    }
+    catch(e){
+      if (typeof callback === "function") {
+        callback("camera data (API Access failed)");
+      }
+      cameraData.initStatus = false;
+      return;
+    }
     cameraData.initStatus = true;
     if (this.camerasList.length > 0) {
       for (let i = 0; i < this.camerasList.length; i++) {

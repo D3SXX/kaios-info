@@ -31,4 +31,5 @@
 
 #toast.notactive {
     bottom: 360px;
+    height: 0px;
 }

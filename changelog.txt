@@ -1,3 +1,9 @@
+Build 0.0.22 from 03.02.2024
+Added menu list for better navigation
+Set the theme color to the correct value
+Improved display data initialization to now display resolution and aspect ratio based on orientation
+Improved camera API checking (initialization was broken in the OS where it was not implemented)
+
 Build 0.0.21 from 02.02.2024
 Added side menu
 Added option to force disable auto refreshing in program 
