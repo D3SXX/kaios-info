@@ -1,45 +1,50 @@
-#menu-list{
-    z-index: 3;
-    position: fixed;
-    background: white;
-    top:30px;
-    width: 240px;
-    border-bottom: 1px solid black;
-    min-height: 293px;
+#menu-list {
+  z-index: 3;
+  position: fixed;
+  background: white;
+  top: 30px;
+  width: 100%;
+  border-bottom: 1px solid black;
+  min-height: 293px;
+  height: 100%;
 }
 
-#menu-list .menuItem{
-    border-bottom: 1px solid rgb(235, 235, 235);
+#menu-list .menuItem {
+  border-bottom: 1px solid rgb(235, 235, 235);
 }
 
-#menu-list .menuItem.hovered{
+#menu-list .menuItem.hovered {
+  background-color: #79c761;
+  color: white;
+  animation: menuhover 0.2s;
+}
+
+#menu-list ul {
+  padding: 0;
+  list-style-type: none;
+  margin-top: 0px;
+}
+
+#menu-list .menuItem li {
+  list-style: none;
+  height: 45px;
+  text-indent: 10px;
+  align-items: center;
+  display: flex;
+}
+
+#menu-list.hidden {
+  opacity: 0;
+  display: none;
+}
+
+@keyframes menuhover {
+  from {
+    background-color: white;
+    color: black;
+  }
+  to {
     background-color: #79c761;
-    color:white;
-    animation: menuhover 0.2s;
-
-}
-
-#menu-list ul{
-    padding: 0;
-    list-style-type: none;
-    margin-top: 0px;
-}
-
-#menu-list .menuItem li{
-    list-style: none;
-    height: 45px;
-    text-indent: 10px;
-    align-items: center;
-    display: flex;
-
-}
-
-#menu-list.hidden{
-    opacity: 0;
-    display: none;
-}
-
-@keyframes menuhover{
-    from {background-color: white;color: black;}
-    to {background-color: #79c761;color: #ffffff;}
+    color: #ffffff;
+  }
 }

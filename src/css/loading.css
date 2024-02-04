@@ -1,62 +1,68 @@
 #loading {
-    background-color: white;
-    color: black;
-    position: absolute;
-    z-index: 99 !important;
-    top: 0px;
-    opacity: 1;
-    visibility: visible;
-    transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+  background-color: white;
+  color: black;
+  z-index: 3;
+  position: fixed;
+  top: 0px;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+  width: 100%;
+  height: 100%;
 }
-#loading.hidden{
-    opacity: 0;
-    visibility: hidden;
-}
-
-#loading .container{
-    background: radial-gradient(circle at center, 
-    white, white, #c7ebbc),100% ;
-    width: 240px;
-    height: 293px;
-    position: absolute;
+#loading.hidden {
+  opacity: 0;
+  visibility: hidden;
 }
 
-#loading .logo{
-    align-items: center;
-    margin-left: auto;
-    margin-right: auto;
-    width: 50%;
-    margin-top: 5%;
+#loading .container {
+  background: radial-gradient(circle at center, white, white, #c7ebbc), 100%;
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
 
-#loading .title{
-    text-align: center;
-    font-size: 27px;
-    font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-
+#loading .logo {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+  margin-top: 5%;
 }
 
-#loading .title .small-title{
-    font-size: 15px;
+#loading .logo img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-#loading .loading-bar{
-    margin-top: 10%;
-    color:black;
-    text-align: center;
-    
+#loading .title {
+  text-align: center;
+  font-size: 27px;
+  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
 }
 
-#loading .loading-bar progress{
-    border-radius: 10px;
-    background-color: #c7ebbc;
+#loading .title .small-title {
+  font-size: 15px;
+}
+
+#loading .loading-bar {
+  margin-top: 10%;
+  color: black;
+  text-align: center;
+}
+
+#loading .loading-bar progress {
+  border-radius: 10px;
+  background-color: #c7ebbc;
 }
 
 #loading .loading-bar progress::-moz-progress-bar {
-    border-radius: 10px;
-    background: lightgreen;
+  border-radius: 10px;
+  background: lightgreen;
 }
 
-#loading .loading-bar .loading-bar-text{
-    font-size: 11px;
+#loading .loading-bar .loading-bar-text {
+  font-size: 11px;
 }

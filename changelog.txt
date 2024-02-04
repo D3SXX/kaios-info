@@ -1,3 +1,8 @@
+Build 0.0.23 from 04.02.2024
+Added "About KaiOS Info" tab
+Improved CSS
+program now uses buttons 2,4,5,6,8 for navigation
+
 Build 0.0.22 from 03.02.2024
 Added menu list for better navigation
 Set the theme color to the correct value

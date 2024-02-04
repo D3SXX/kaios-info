@@ -1,6 +1,6 @@
 "use strict";
 
-const buildInfo = ["0.0.22", "03.02.2024"];
+const buildInfo = ["0.0.23", "04.02.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -186,15 +186,30 @@ const controls = {
           debug.print(`controls.handleEnter() - forceDisableRefresh is set to ${menu.forceDisableRefresh}`)
           break;
         case 3:
+          menu.draw(10);
           break;
         case 4:
           window.close();
       }
       draw.toggleSideMenu();
+      return;
     }
     switch (this.col) {
       case 7:
         menu.toggleList();
+        break;
+      case 10:
+        switch(controls.row){
+          case 1:
+            open("https://github.com/D3SXX/kaios-hardware-info");
+            break;
+          case 2:
+            open("https://github.com/D3SXX/kaios-hardware-info/releases");
+            break;
+          case 3:
+            open("./changelog.txt");
+            break;
+        }
         break;
     }
   },
@@ -223,6 +238,8 @@ const controls = {
         switch(e.key){
           case "ArrowRight":
           case "ArrowDown":
+          case "8":
+          case "6":
             controls.increase("col");
             controls.row = controls.col;
             menuHover(controls.col, pastCol, hoverArg);
@@ -230,12 +247,15 @@ const controls = {
             return;
           case "ArrowLeft":
           case "ArrowUp":
+          case "2":
+          case "4":
             controls.decrease("col");
             controls.row = controls.col;
             menuHover(controls.col, pastCol, hoverArg);
             scrollHide()
             return;
           case "Enter":
+          case "5":
             draw.toggleListMenu();
             return;
           case "#":
@@ -252,22 +272,27 @@ const controls = {
     let pastRow = controls[rowType];
     switch (e.key) {
       case "ArrowUp":
+      case "2":
         controls.decrease(rowType);
         menuHover(controls[rowType], pastRow, hoverArg);
         break;
       case "ArrowDown":
+      case "8":
         controls.increase(rowType);
         menuHover(controls[rowType], pastRow, hoverArg);
         break;
       case "ArrowRight":
+      case "6":
         controls.increase("col");
         menu.draw();
         break;
       case "ArrowLeft":
+      case "4":
         controls.decrease("col");
         menu.draw();
         break;
       case "Enter":
+      case "5":
         controls.handleEnter();
         break;
       case "SoftRight":
@@ -846,7 +871,7 @@ const menu = {
         this.enableRefresh = true;
         break;
       case 9:
-        navbarEntries = `<span id="l7" class="notactive">${localeData[7]["index"]}</span><span id="l8" class="notactive">${localeData[8]["index"]}</span><span id="l9" class="active">${localeData[9]["index"]}</span>`;
+        navbarEntries = `<span id="l7" class="notactive">${localeData[7]["index"]}</span><span id="l8" class="notactive">${localeData[8]["index"]}</span><span id="l9" class="active">${localeData[9]["index"]}</span><span id="l10" class="notactive">${localeData[10]["index"]}</span>`;
 
         if (returnOnlyData) {
           menu = [];
@@ -901,9 +926,24 @@ const menu = {
         controls.rowLimit = rowCount - 1;
         this.enableRefresh = true;
         break;
+      case 10:
+        navbarEntries = `<span id="l9" class="notactive">${localeData[9]["index"]}</span><span id="l10" class="active">${localeData[10]["index"]}</span>`;
+        menu = `<ul>
+        <li id = "1" style="height:80px;"><p style="font-size:20px; position:absolute; top:70px">
+        KaiOS Backup</p>
+        <p style="top:100px;position:absolute;">${localeData[4]["1"]} D3SXX</p>
+        <img src="../assets/icons/KaiOS-Info_56.png" style="position:absolute; right:10px; top:85px">
+        </li>
+        <li id = "2">${localeData[10]["2"]} ${buildInfo[0]}
+        </li>
+        <li id = "3">${localeData[10]["3"]} ${buildInfo[1]}
+        </li>
+        </ul>`
+        controls.rowLimit = 3;
+        break;
     }
 
-    controls.colLimit = 9;
+    controls.colLimit = 10;
     if (returnOnlyData) return menu;
     return [menu, navbarEntries];
   },
@@ -912,7 +952,7 @@ const menu = {
 function scrollHide() {
   let limit = 4;
   if(draw.listMenuState){
-    limit = 5;
+    limit = 6;
   }
   const entriesAmount = controls.rowLimit;
   if (entriesAmount <= limit) {
