@@ -1,3 +1,13 @@
+Build 0.0.24 from 05.02.2024
+Added toasts
+Added the ability to toggle Wifi
+Improved toggle for Bluetooth to trigger only in the first row
+Fixed display of battery level (now it is always an integer)
+Fixed the behavior of the Network tab when changing Wi-Fi data
+Added a depth unit in the "Display" tab
+Removed parentheses from the ID string on the Camera tb.
+Relative signal strength has been added to the “Speed” row on the “Network” tab
+
 Build 0.0.23 from 04.02.2024
 Added "About KaiOS Info" tab
 Improved CSS

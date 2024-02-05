@@ -1,6 +1,6 @@
 "use strict";
 
-const buildInfo = ["0.0.23", "04.02.2024"];
+const buildInfo = ["0.0.24", "05.02.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -183,6 +183,7 @@ const controls = {
           break;
         case 2:
           menu.forceDisableRefresh = !menu.forceDisableRefresh;
+          toast(`Auto refresh is set to ${!menu.forceDisableRefresh}`)
           debug.print(`controls.handleEnter() - forceDisableRefresh is set to ${menu.forceDisableRefresh}`)
           break;
         case 3:
@@ -215,9 +216,17 @@ const controls = {
   },
   handleSoftLeft: function(){
     switch (this.col) {
+      case 7:
+        if(controls.row === 1){
+        toggleWifi();
+        menu.refreshMenu();
+        }
+        break;
       case 8:
+        if(controls.row === 1){
         toggleBluetooth();
         menu.refreshMenu();
+        }
         break;
     }
   },
@@ -332,10 +341,16 @@ const softkeys = {
     const col = controls["col"];
     const row = controls["row"];
     switch(col){
+      case 7:
+        if (row === 1 && navigator.mozWifiManager){
+          this.softkeysArr[0] = localeData[0]["softLeftToggle"]; 
+        }
+        break;
       case 8:
         if (row === 1 && getInfoString("bluetooth")){
           this.softkeysArr[0] = localeData[0]["softLeftToggle"]; 
         }
+        break;
     }
   },
   draw: function(){
@@ -1021,7 +1036,7 @@ function getInfoString(item, arg = undefined) {
     case "display-resolution":
       return displayData.resolution;
     case "display-depth":
-      return displayData.colorDepth;
+      return `${displayData.colorDepth}-bit color`;
     case "display-aspect-ratio":
       return displayData.aspectRatio;
     case "display-orientation":
@@ -1207,7 +1222,7 @@ const batteryData = {
     }
     let returnString = this.data[type];
     if (type == "level") {
-      returnString = `${parseFloat(returnString) * 100}%`;
+      returnString = `${Math.round(parseFloat(returnString) * 100)} %`;
     } else if (type == "temperature") {
       returnString += " °C";
     } else if (type == "status") {
@@ -1350,9 +1365,29 @@ function toggleBluetooth() {
   if (bluetoothData.defaultAdapter.state === "disabled") {
     bluetoothData.defaultAdapter.enable();
     debug.print("toggleBluetooth() - Bluetooth enabled");
+    toast("Bluetooth enabled");
   } else {
     bluetoothData.defaultAdapter.disable();
     debug.print("toggleBluetooth() - Bluetooth disabled");
+    toast("Bluetooth disabled");
+  }
+  return true;
+}
+
+function toggleWifi() {
+  const wifiData  = navigator.mozWifiManager;
+  if (wifiData === undefined) {
+    debug.print("toggleWifi() - No access to API");
+    return false;
+  }
+  if (wifiData.enabled == false) {
+    wifiData.setWifiEnabled(true);
+    debug.print("toggleWifi() - Wifi enabled");
+    toast("Wifi enabled");
+  } else {
+    wifiData.setWifiEnabled(false);
+    debug.print("toggleWifi() - Wifi disabled");
+    toast("Wifi disabled");
   }
   return true;
 }
@@ -1364,31 +1399,44 @@ function getNetworkInfo(type, sim) {
     else if (type === "network-wifi") return true;
     const wifiConnectionData = wifiData.connectionInformation;
     const wifiStatus = wifiData.enabled ? "Enabled" : "Disabled";
-
-    if (wifiStatus == "Enabled") {
       switch (type) {
         case "network-wifi-type":
           return `Wi-Fi (${wifiStatus})`;
+        case "network-wifi-mac":
+          return wifiData.macAddress;
         case "network-wifi-ssid":
-          return `${wifiData.connection.network.ssid}`;
+          return `${wifiData.connection.network ? wifiData.connection.network.ssid : wifiData.connection.status}`;
         case "network-wifi-speed":
-          return `${wifiConnectionData.linkSpeed} Mbps`;
+          if(!wifiData.connection || !wifiConnectionData){
+            return wifiData.connection.status;
+          }
+          return `${wifiConnectionData.linkSpeed} Mbps (${wifiConnectionData.relSignalStrength} %)`;
         case "network-wifi-signal":
+          if(!wifiConnectionData){
+            return wifiData.connection.status;
+          }
           return `${wifiConnectionData.signalStrength} dBm`;
         case "network-wifi-ip":
+          if(!wifiConnectionData){
+            return wifiData.connection.status;
+          }
           return wifiConnectionData.ipAddress;
         case "network-wifi-frequency":
+          if(!wifiConnectionData){
+            return wifiData.connection.status;
+          }
           return `${wifiData.connection.network.frequency} MHz`;
         case "network-wifi-internet":
           return wifiData.hasInternet;
         case "network-wifi-hidden":
+          if(!wifiConnectionData){
+            return wifiData.connection.status;
+          }
           return wifiData.connection.network.hidden;
-        case "network-wifi-mac":
-          return wifiData.macAddress;
+
       }
-    } else {
-      return "Disabled";
-    }
+    
+    
   } else {
     if (navigator.mozMobileConnections === undefined) return false;
     const mobileData = navigator.mozMobileConnections[sim];
@@ -1512,7 +1560,7 @@ const cameraData = {
           this.camerasList[currentCameras].slice(1)
         );
       case "camera-id":
-        return camera.camera.id;
+        return camera.camera.id.slice(1).slice(0,-1);
       case "camera-photo-resolution":
         return `${(
           camera.camera.capabilities.pictureSizes[0].width *
@@ -1600,6 +1648,21 @@ function removeAllElementsInString(string, element) {
     newString = newString.replace(element, "");
   }
   return newString;
+}
+
+function toast(msg = null) {
+  let toastElement = document.getElementById('toast');
+  if (msg != null) {
+    toastElement.classList.remove('notactive');
+    toastElement.classList.add('active');
+    toastElement.innerHTML = `<span>${msg}</span>`;
+    debug.print('toast() - Toast activated');
+    setTimeout(function() {
+      toastElement.classList.remove('active');
+      toastElement.classList.add('notactive');
+      debug.print('toast() - Toast deactivated');
+    }, 2 * 1000)
+  }
 }
 
 document.activeElement.addEventListener("keydown", controls.handleKeydown);
