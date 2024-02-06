@@ -1,6 +1,6 @@
 "use strict";
 
-const buildInfo = ["1.0.0 Stable", "05.02.2024"];
+const buildInfo = ["1.0.0 Stable", "06.02.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -1442,7 +1442,7 @@ function getNetworkInfo(type, sim) {
   let activeSignal =
     mobileData.signalStrength.lteSignalStrength === 99
       ? undefined
-      : `${mobileData.signalStrength.lteSignalStrength} dBm`;
+      : `${mobileData.signalStrength.lteRsrp} dBm`;
   switch (type) {
     case "network-type":
       return `Cell - SIM ${sim + 1} (${
@@ -1460,7 +1460,10 @@ function getNetworkInfo(type, sim) {
       return activeType;
     case "network-sim-signal":
       // GSM Signal strength described in section 8.5 (ETSI TS 127 007 V6.8.0) https://www.etsi.org/deliver/etsi_ts/127000_127099/127007/06.08.00_60/ts_127007v060800p.pdf
-      if (!activeSignal && mobileData.radioState !== "disabled") {
+      if(mobileData.radioState === "disabled"){
+        return "Disconnected"
+      }
+      if (!activeSignal) {
         activeSignal =
           mobileData.signalStrength.gsmSignalStrength === 99
             ? "Unknown"
@@ -1469,8 +1472,6 @@ function getNetworkInfo(type, sim) {
               )} dBm (${Math.round(
                 (mobileData.signalStrength.gsmSignalStrength / 31) * 100
               )}%)`;
-      } else {
-        return "Disconnected";
       }
       return activeSignal;
     case "network-sim-roaming":
