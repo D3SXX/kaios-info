@@ -1,15 +1,16 @@
 {
     "en-US":
        [   
-           {"softLeftClear":"Clear","softLeftToggle":"Toggle","softCenter":"Select","softRight":"Menu","close":"Close","errorOnApi":"Couldn't get access to Api","errorOnEmptyList":"Device list is empty","sidemenu-exit":"Exit","sidemenu-togglerefresh":"Toggle auto refresh","sidemenu-about":"About","sidemenu-openlistmenu":"Open list"
+           {"softLeftToggle":"Toggle","softCenter":"Select","softRight":"Menu","close":"Close","errorOnApi":"Couldn't get access to Api","errorOnEmptyList":"Device list is empty","sidemenu-exit":"Exit","sidemenu-togglerefresh":"Toggle auto refresh","sidemenu-about":"About","sidemenu-openlistmenu":"Open list"
             },
             {"1":"Model","2":"OS","3":"Firefox Version","4":"RAM","5":"Developer Mode","index":"System"},
             {"1":"Resolution","2":"Depth","3":"Aspect ratio","4":"Orientation","index":"Display"},
-            {"1":"Model","2":"Cores","3":"Frequency","index":"CPU"},
+            {"1":"Cores","2":"Frequency","index":"CPU"},
             {"1":"Model","2":"Manufacturer","index":"GPU"},
             {"1":"Id","2":"Name","3":"Photo Resolution","4":"Focal Length","5":"Video Resolution","6":"Bitrate","7":"Frametime","8":"Codec","index":"Camera"},
             {"1":"Level","2":"Health","3":"Status","4":"Temperature","index":"Battery"},
-            {"1":"Type","2":"SSID","3":"Speed","4":"Signal Strength","5":"IP Address","6":"Frequency","7":"Internet Access","8":"Hidden SSID","9":"MAC","10":"Type","11":"Provider","12":"Standard","13":"Signal Strength","14":"Roaming","15":"Status","16":"ICCID","splitAtRow":[1,9],"index":"Network"},
+            {"1":"Type","2":"SSID","3":"Speed","4":"Signal Strength","5":"IP Address","6":"Frequency","7":"Internet Access","8":"Hidden SSID","9":"MAC","index":"Wi-Fi"},
+            {"1":"Type","2":"Provider","3":"Standard","4":"Signal Strength","5":"Roaming","6":"Status","7":"ICCID","index":"Network"},
             {"1":"Status","2":"BT Name","3":"Address","4":"Discoverable","5":"Discovering","index":"Bluetooth"},
             {"1":"Type","2":"Total Space","3":"Space Used","4":"Default","index":"Storage"},
             {"1":"Made by","2":"Build:","3":"Release date:","index":"About KaiOS Info"}

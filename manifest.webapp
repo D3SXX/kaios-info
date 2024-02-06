@@ -1,5 +1,5 @@
 {
-  "version": "0.0.24",
+  "version": "1.0.0",
   "name": "KaiOS Info",
   "subtitle": "View information about your KaiOS device",
   "description": "View information about your KaiOS device",
@@ -30,16 +30,11 @@
     }
   },
   "permissions": {
-    "contacts":{ "access": "readwrite" },
-    "settings":{ "access": "readonly" },
-    "sms": {},
-    "storage": {},
+    "storage": {"description": "needed for navigator.getDeviceStorages"},
     "device-storage:sdcard": { "access": "readcreate" },
-    "camera":{},
+    "camera":{"description": "needed for navigator.mozCameras"},
     "audio-capture":{},
     "video-capture":{},
-    "engmode-extension": {},
-		"tcp-socket": {},
     "wifi-manage":{"description": "needed for navigator.mozWifiManager"},
     "mobilenetwork": {"description": "needed for navigator.mozMobileConnections"},
     "mobileconnection": {"description": "needed for navigator.mozMobileConnections"},

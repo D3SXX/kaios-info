@@ -1,6 +1,6 @@
 "use strict";
 
-const buildInfo = ["0.0.24", "05.02.2024"];
+const buildInfo = ["1.0.0 Stable", "05.02.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -21,10 +21,14 @@ function initProgram(data) {
   ];
   let completedCount = 0;
   function onInitComplete(description = "", skipCount = false) {
-    if(!skipCount){
-    completedCount++;
+    if (!skipCount) {
+      completedCount++;
     }
-    draw.updateProgressBar(completedCount,initFunctions.length, "Initialized " + description);
+    draw.updateProgressBar(
+      completedCount,
+      initFunctions.length,
+      "Initialized " + description
+    );
     debug.print("initialized " + description);
     if (completedCount === initFunctions.length) {
       finishInitialization(data);
@@ -113,7 +117,6 @@ const controls = {
     let limit = type + "Limit";
     if (this[type] < this[limit]) {
       this[type]++;
-      this.applySkip("increase");
     } else {
       this[type] = 1;
     }
@@ -124,40 +127,11 @@ const controls = {
     let limit = type + "Limit";
     if (this[type] > 1) {
       this[type]--;
-      this.applySkip("decrease");
     } else {
       this[type] = this[limit];
     }
     debug.print(`controls.decrease() - ${type}: ${this[type]}`);
     scrollHide();
-  },
-  applySkip: function (type) {
-    if (menu.hideList.length == 0) return;
-    let startAt = menu.getHideListBoundaries("start");
-    let endAt = menu.getHideListBoundaries("end");
-    if (!startAt || !endAt) {
-      return false;
-    }
-    let skip = [];
-    for (let i = 0; i < startAt.length; i++) {
-      if (menu.hideList.includes(startAt[i])) {
-        skip.push(startAt[i]);
-        skip.push(endAt[i]);
-      }
-    }
-    for (let i = 0; i < skip.length; i += 2) {
-      if (controls.row > skip[i] && controls.row <= skip[i + 1]) {
-        console.log(skip[i], skip[i + 1], controls.row);
-        switch (type) {
-          case "increase":
-            controls.row = skip[i + 1] + 1;
-            return true;
-          case "decrease":
-            controls.row = skip[i];
-            return true;
-        }
-      }
-    }
   },
   updateLimits: function (col = this.colLimit, row = this.rowLimit, type = "") {
     let colLimit = `col${type}Limit`;
@@ -176,18 +150,20 @@ const controls = {
     );
   },
   handleEnter: function () {
-    if(draw.sideMenuState){
-      switch(controls.rowMenu){
+    if (draw.sideMenuState) {
+      switch (controls.rowMenu) {
         case 1:
           draw.toggleListMenu();
           break;
         case 2:
           menu.forceDisableRefresh = !menu.forceDisableRefresh;
-          toast(`Auto refresh is set to ${!menu.forceDisableRefresh}`)
-          debug.print(`controls.handleEnter() - forceDisableRefresh is set to ${menu.forceDisableRefresh}`)
+          toast(`Auto refresh is set to ${!menu.forceDisableRefresh}`);
+          debug.print(
+            `controls.handleEnter() - forceDisableRefresh is set to ${menu.forceDisableRefresh}`
+          );
           break;
         case 3:
-          menu.draw(10);
+          menu.draw(11);
           break;
         case 4:
           window.close();
@@ -196,16 +172,13 @@ const controls = {
       return;
     }
     switch (this.col) {
-      case 7:
-        menu.toggleList();
-        break;
-      case 10:
-        switch(controls.row){
+      case 11:
+        switch (controls.row) {
           case 1:
-            open("https://github.com/D3SXX/kaios-hardware-info");
+            open("https://github.com/D3SXX/kaios-info");
             break;
           case 2:
-            open("https://github.com/D3SXX/kaios-hardware-info/releases");
+            open("https://github.com/D3SXX/kaios-info/releases");
             break;
           case 3:
             open("./changelog.txt");
@@ -214,69 +187,77 @@ const controls = {
         break;
     }
   },
-  handleSoftLeft: function(){
+  handleSoftLeft: function () {
     switch (this.col) {
       case 7:
-        if(controls.row === 1){
-        toggleWifi();
-        menu.refreshMenu();
+        if (controls.row === 1) {
+          toggleWifi();
+          menu.refreshMenu();
         }
         break;
       case 8:
-        if(controls.row === 1){
-        toggleBluetooth();
-        menu.refreshMenu();
+        if (menu.networkToggleList.includes(controls.row)) {
+          toggleNetwork(menu.networkToggleList.indexOf(controls.row));
+        }
+        break;
+      case 9:
+        if (controls.row === 1) {
+          toggleBluetooth();
+          menu.refreshMenu();
         }
         break;
     }
   },
   handleKeydown: function (e) {
     debug.print(`${e.key} triggered`);
-    let rowType = "row"
+    let rowType = "row";
     let hoverArg = "";
-    if(draw.sideMenuState){
+    if (draw.sideMenuState) {
       rowType = rowType + "Menu";
       hoverArg = "m";
-      if(e.key === "ArrowRight" || e.key === "ArrowLeft" || e.key === "SoftLeft"){
+      if (
+        e.key === "ArrowRight" ||
+        e.key === "ArrowLeft" ||
+        e.key === "SoftLeft"
+      ) {
         return;
       }
     }
-    if(draw.listMenuState){
-        hoverArg = "";
-        let pastCol = controls.col;
-        switch(e.key){
-          case "ArrowRight":
-          case "ArrowDown":
-          case "8":
-          case "6":
-            controls.increase("col");
-            controls.row = controls.col;
-            menuHover(controls.col, pastCol, hoverArg);
-            scrollHide();
-            return;
-          case "ArrowLeft":
-          case "ArrowUp":
-          case "2":
-          case "4":
-            controls.decrease("col");
-            controls.row = controls.col;
-            menuHover(controls.col, pastCol, hoverArg);
-            scrollHide()
-            return;
-          case "Enter":
-          case "5":
-            draw.toggleListMenu();
-            return;
-          case "#":
-              debug.toggle();
-              return;
-          case "Backspace":
-            close();
-            return;
-          default:
-            return;
-        }
-
+    if (draw.listMenuState) {
+      hoverArg = "";
+      let pastCol = controls.col;
+      switch (e.key) {
+        case "ArrowRight":
+        case "ArrowDown":
+        case "8":
+        case "6":
+          controls.increase("col");
+          controls.row = controls.col;
+          menuHover(controls.col, pastCol, hoverArg);
+          scrollHide();
+          return;
+        case "ArrowLeft":
+        case "ArrowUp":
+        case "2":
+        case "4":
+          controls.decrease("col");
+          controls.row = controls.col;
+          menuHover(controls.col, pastCol, hoverArg);
+          scrollHide();
+          return;
+        case "Enter":
+        case "5":
+          draw.toggleListMenu();
+          return;
+        case "#":
+          debug.toggle();
+          return;
+        case "Backspace":
+          close();
+          return;
+        default:
+          return;
+      }
     }
     let pastRow = controls[rowType];
     switch (e.key) {
@@ -324,14 +305,14 @@ const controls = {
 };
 
 const softkeys = {
-  softkeysArr: ["","",""],
-  default: function(){
+  softkeysArr: ["", "", ""],
+  default: function () {
     this.softkeysArr[0] = "";
     this.softkeysArr[1] = localeData[0]["softCenter"];
     this.softkeysArr[2] = localeData[0]["softRight"];
   },
-  get: function(){
-    if(draw.sideMenuState){
+  get: function () {
+    if (draw.sideMenuState) {
       this.softkeysArr[0] = "";
       this.softkeysArr[1] = "";
       this.softkeysArr[2] = localeData[0]["close"];
@@ -340,75 +321,89 @@ const softkeys = {
     this.default();
     const col = controls["col"];
     const row = controls["row"];
-    switch(col){
+    switch (col) {
       case 7:
-        if (row === 1 && navigator.mozWifiManager){
-          this.softkeysArr[0] = localeData[0]["softLeftToggle"]; 
+        if (row === 1 && navigator.mozWifiManager) {
+          this.softkeysArr[0] = localeData[0]["softLeftToggle"];
         }
         break;
       case 8:
-        if (row === 1 && getInfoString("bluetooth")){
-          this.softkeysArr[0] = localeData[0]["softLeftToggle"]; 
+        if(getInfoString("network-amount") === 0){
+          return;
+        }
+        if (menu.networkToggleList.includes(controls.row)) {
+          this.softkeysArr[0] = localeData[0]["softLeftToggle"];
+        }
+        break;
+      case 9:
+        if (row === 1 && getInfoString("bluetooth")) {
+          this.softkeysArr[0] = localeData[0]["softLeftToggle"];
         }
         break;
     }
   },
-  draw: function(){
+  draw: function () {
     this.get();
     let softkeys = "";
     const softkeyContainer = document.getElementById("softkey");
-  
-    softkeys += `<label id="left">${this.softkeysArr[0]}</label>`
-    softkeys += `<label id="center">${this.softkeysArr[1]}</label>`
-    softkeys += `<label id="right">${this.softkeysArr[2]}</label>`
+
+    softkeys += `<label id="left">${this.softkeysArr[0]}</label>`;
+    softkeys += `<label id="center">${this.softkeysArr[1]}</label>`;
+    softkeys += `<label id="right">${this.softkeysArr[2]}</label>`;
     softkeyContainer.innerHTML = softkeys;
-  }
-}
+  },
+};
 
 const draw = {
   sideMenuState: false,
-  updateProgressBar: function(value,maxValue, text){
-    document.getElementById("progress-bar-loading").max = maxValue
-    document.getElementById("progress-bar-loading").value = value
+  updateProgressBar: function (value, maxValue, text) {
+    document.getElementById("progress-bar-loading").max = maxValue;
+    document.getElementById("progress-bar-loading").value = value;
     document.getElementById("loading-bar-text").innerText = text;
   },
-  closeLoadingPage: function(){
-    document.getElementById("loading").classList.add('hidden');
+  closeLoadingPage: function () {
+    document.getElementById("loading").classList.add("hidden");
   },
-  initSideMenu(){
-    const menuElements = [localeData[0]["sidemenu-openlistmenu"],localeData[0]["sidemenu-togglerefresh"],localeData[0]["sidemenu-about"],[localeData[0]["sidemenu-exit"]]];
+  initSideMenu() {
+    const menuElements = [
+      localeData[0]["sidemenu-openlistmenu"],
+      localeData[0]["sidemenu-togglerefresh"],
+      localeData[0]["sidemenu-about"],
+      [localeData[0]["sidemenu-exit"]],
+    ];
     const element = document.getElementById("menu");
     let menuData = "";
-    for (let i = 0; i<menuElements.length; i++){
-      menuData += `<div id="m${i+1}" class="menuItem">${menuElements[i]}</div>`;
+    for (let i = 0; i < menuElements.length; i++) {
+      menuData += `<div id="m${i + 1}" class="menuItem">${
+        menuElements[i]
+      }</div>`;
     }
     element.innerHTML = menuData;
     controls.rowMenuLimit = menuElements.length;
     controls.rowMenu = 1;
-    menuHover(1,undefined,"m");
-    debug.print("draw.initSideMenu - Side menu initialized")
+    menuHover(1, undefined, "m");
+    debug.print("draw.initSideMenu - Side menu initialized");
   },
-  toggleSideMenu(){
+  toggleSideMenu() {
     this.sideMenuState = !this.sideMenuState;
-    if(this.sideMenuState){
+    if (this.sideMenuState) {
       document.getElementById("menu").classList.remove("hidden");
-    }
-    else{
+    } else {
       document.getElementById("menu").classList.add("hidden");
     }
   },
-  initListMenu(){
+  initListMenu() {
     const element = document.getElementById("menu-list");
     let menuData = "<ul>";
-    for(let i = 1; i<localeData.length; i++){
+    for (let i = 1; i < localeData.length; i++) {
       menuData += `<li id="${i}" class="menuItem">${localeData[i]["index"]}</li>`;
     }
-    menuData += "</ul>"
+    menuData += "</ul>";
     element.innerHTML = menuData;
   },
-  toggleListMenu(){
+  toggleListMenu() {
     this.listMenuState = !this.listMenuState;
-    if (this.listMenuState){
+    if (this.listMenuState) {
       menu.forceDisableRefresh = true;
       menu.splitAtRow = [];
       document.getElementById("menu-list").classList.remove("hidden");
@@ -416,19 +411,17 @@ const draw = {
       controls.rowLimit = localeData.length - 1;
       controls.row = controls.col;
       document.getElementById("menu-container").innerHTML = "";
-      menuHover(controls.col, undefined,"");
+      menuHover(controls.col, undefined, "");
       scrollHide();
-    }
-    else{
+    } else {
       menu.forceDisableRefresh = false;
-      menuHover(undefined,controls.col,"")
+      menuHover(undefined, controls.col, "");
       document.getElementById("menu-list").classList.add("hidden");
       menu.draw();
       softkeys.draw();
     }
-
-  }
-}
+  },
+};
 
 const menu = {
   hideList: [],
@@ -441,10 +434,9 @@ const menu = {
     controls.resetControls("row");
     const menuContainer = document.getElementById("menu-container");
     this.activeHideList = [];
-    let data;
-    data = this.getMenuData(col);
-    menuContainer.innerHTML = data[0];
-    this.updateNavbar(data[1]);
+    let menu = this.getMenuData(col);
+    menuContainer.innerHTML = menu;
+    this.updateNavbar();
     try {
       clearTimeout(this.timeoutID);
     } catch (e) {
@@ -453,67 +445,6 @@ const menu = {
     document.getElementById("l" + controls.col).className = "hovered";
     document.getElementById(controls.row).className = "hovered";
     this.refreshMenu();
-  },
-  getHideListBoundaries: function (type) {
-    if (this.splitAtRow.length > 0) {
-      let startAt = [],
-        endAt = [];
-      for (let i = 0; i < this.splitAtRow.length; i += 2) {
-        startAt.push(this.splitAtRow[i]);
-        endAt.push(this.splitAtRow[i + 1]);
-      }
-      switch (type) {
-        case "start":
-          return startAt;
-        case "end":
-          return endAt;
-        default:
-          return false;
-      }
-    } else {
-      return false;
-    }
-  },
-  toggleList: function (forceHide = undefined) {
-    let startAt = this.getHideListBoundaries("start");
-    let endAt = this.getHideListBoundaries("end");
-    if (!startAt || !endAt) {
-      return;
-    }
-    if (startAt.includes(controls.row)) {
-      endAt = endAt[startAt.indexOf(controls.row)];
-      startAt = startAt[startAt.indexOf(controls.row)];
-      if (
-        (document.getElementById(controls.row + 1).style.display === "none") &
-        (forceHide != "hide")
-      ) {
-        debug.print(
-          `toggleList() - Showing elements from ${startAt} to ${endAt}`
-        );
-        showElements("", startAt + 1, endAt);
-        this.hideList = this.hideList.filter(function (element) {
-          return element !== controls.row;
-        });
-        const oldText = removeAllElementsInString(
-          document.getElementById(startAt).innerHTML,
-          "  ↓"
-        );
-        document.getElementById(startAt).innerHTML = `${oldText}  &#8593;`;
-      } else {
-        debug.print(
-          `toggleList() - hiding elements from ${startAt} to ${endAt}`
-        );
-        hideElements("", startAt + 1, endAt);
-        this.hideList.push(controls.row);
-        let oldText = removeAllElementsInString(
-          document.getElementById(startAt).innerHTML,
-          "  ↑"
-        );
-        document.getElementById(startAt).innerHTML = `${oldText}  &#8595;`;
-      }
-    } else {
-      return;
-    }
   },
   refreshMenu: function () {
     if (this.enableRefresh && !this.forceDisableRefresh) {
@@ -527,16 +458,34 @@ const menu = {
       }, 1000);
     }
   },
-  updateNavbar: function (navbarArr) {
-    const navbarContainer = document.getElementById("nav-bar");
-    navbarContainer.innerHTML = navbarArr;
+  updateNavbar: function () {
+    let navbarData = "";
+    if (!this.navbarList) {
+      this.navbarList = [];
+      for (let i = 1; i < localeData.length; i++) {
+        this.navbarList.push(
+          `<span id="l${i}" class = "notactive">${localeData[i]["index"]}</span>`
+        );
+      }
+    }
+    const col = controls.col;
+    for (let i = 0; i < col; i++) {
+      navbarData += this.navbarList[i];
+    }
+    let i = 0;
+    while (navbarData.length > 150) {
+      navbarData = navbarData.substr(this.navbarList[i].length);
+      i += 1;
+    }
+    for (i = col; i < this.navbarList.length; i++) {
+      navbarData += this.navbarList[i];
+    }
+    document.getElementById("nav-bar").innerHTML = navbarData;
   },
   getMenuData: function (col, returnOnlyData = false) {
     let menu = "";
     let rowCount = 1;
     this.enableRefresh = false;
-    this.splitAtRow = [];
-    let navbarEntries = `<span id="l1" class = "active">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
     switch (col) {
       case 1:
         menu = `<ul>
@@ -554,7 +503,6 @@ const menu = {
         controls.rowLimit = 5;
         break;
       case 2:
-        navbarEntries = `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="active">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
         menu = `<ul>
         <li id="1">${localeData[2]["1"]}: ${getInfoString(
           "display-resolution"
@@ -570,22 +518,19 @@ const menu = {
         controls.rowLimit = 4;
         break;
       case 3:
-        navbarEntries = `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="active">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
         menu = `<ul>
-        <li id="1">${localeData[3]["1"]}: ${getInfoString("cpu")}</li>
-        <li id="2">${localeData[3]["2"]}: ${getInfoString("cpu-cores")}</li>
-        <li id="3">${localeData[3]["3"]}: ${getInfoString("cpu-frequency")}</li>
+        <li id="1">${localeData[3]["1"]}: ${getInfoString("cpu-cores")}</li>
+        <li id="2">${localeData[3]["2"]}: ${getInfoString("cpu-frequency")}</li>
         </ul>`;
-        controls.rowLimit = 3;
+        controls.rowLimit = 2;
         break;
       case 4:
-        navbarEntries = `<span id="l1" class = "notactive">${localeData[1]["index"]}</span><span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="active">${localeData[4]["index"]}</span></span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
         if (gpuData.initStatus) {
           menu = `<ul>
         <li id="1">${localeData[4]["1"]}: ${getInfoString("gpu")}</li>
         <li id="2">${localeData[4]["2"]}: ${getInfoString("gpu-man")}</li>
         </ul>`;
-        controls.rowLimit = 2;
+          controls.rowLimit = 2;
         } else {
           menu += `<ul><li id="${rowCount++}">${
             localeData[0]["errorOnApi"]
@@ -594,7 +539,6 @@ const menu = {
         }
         break;
       case 5:
-        navbarEntries = `<span id="l2" class="notactive">${localeData[2]["index"]}</span><span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="active">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
         menu = "<ul>";
         if (cameraData.initStatus) {
           const camerasAmount = cameraData.camerasList.length || 0;
@@ -653,7 +597,6 @@ const menu = {
         controls.rowLimit = rowCount;
         break;
       case 6:
-        navbarEntries = `<span id="l3" class="notactive">${localeData[3]["index"]}</span><span id="l4" class="notactive">${localeData[4]["index"]}</span><span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="active">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span>`;
         if (batteryData.initStatus) {
           if (returnOnlyData) {
             menu = [
@@ -690,59 +633,60 @@ const menu = {
         this.enableRefresh = true;
         break;
       case 7:
-        this.hideList = [];
-        navbarEntries = `<span id="l5" class="notactive">${localeData[5]["index"]}</span><span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="active">${localeData[7]["index"]}</span><span id="l8" class="notactive">${localeData[8]["index"]}</span>`;
-        if (getInfoString("network-wifi")) {
+        if (getInfoString("wifi")) {
           if (returnOnlyData) {
             menu = [
-              `${localeData[7]["1"]}: ${getInfoString("network-wifi-type")}${
-                this.hideList.includes(1) ? "  ↓" : "  ↑"
-              }`,
-              `${localeData[7]["2"]}: ${getInfoString("network-wifi-ssid")}`,
-              `${localeData[7]["3"]}: ${getInfoString("network-wifi-speed")}`,
-              `${localeData[7]["4"]}: ${getInfoString("network-wifi-signal")}`,
-              `${localeData[7]["5"]}: ${getInfoString("network-wifi-ip")}`,
-              `${localeData[7]["6"]}: ${getInfoString(
-                "network-wifi-frequency"
+              `${localeData[controls.col]["1"]}: ${getInfoString("wifi-type")}`,
+              `${localeData[controls.col]["2"]}: ${getInfoString("wifi-ssid")}`,
+              `${localeData[controls.col]["3"]}: ${getInfoString(
+                "wifi-speed"
               )}`,
-              `${localeData[7]["7"]}: ${getInfoString(
-                "network-wifi-internet"
+              `${localeData[controls.col]["4"]}: ${getInfoString(
+                "wifi-signal"
               )}`,
-              `${localeData[7]["8"]}: ${getInfoString("network-wifi-hidden")}`,
-              `${localeData[7]["9"]}: ${getInfoString("network-wifi-mac")}`,
+              `${localeData[controls.col]["5"]}: ${getInfoString("wifi-ip")}`,
+              `${localeData[controls.col]["6"]}: ${getInfoString(
+                "wifi-frequency"
+              )}`,
+              `${localeData[controls.col]["7"]}: ${getInfoString(
+                "wifi-internet"
+              )}`,
+              `${localeData[controls.col]["8"]}: ${getInfoString(
+                "wifi-hidden"
+              )}`,
+              `${localeData[controls.col]["9"]}: ${getInfoString("wifi-mac")}`,
             ];
           } else {
             menu = `<ul>
-          <li id="1">${localeData[7]["1"]}: ${getInfoString(
-              "network-wifi-type"
+          <li id="1">${localeData[controls.col]["1"]}: ${getInfoString(
+              "wifi-type"
             )}${this.hideList.includes(1) ? "  ↓" : "  ↑"}</li>
-          <li id="2">${localeData[7]["2"]}: ${getInfoString(
-              "network-wifi-ssid"
+          <li id="2">${localeData[controls.col]["2"]}: ${getInfoString(
+              "wifi-ssid"
             )}</li>
-          <li id="3">${localeData[7]["3"]}: ${getInfoString(
-              "network-wifi-speed"
+          <li id="3">${localeData[controls.col]["3"]}: ${getInfoString(
+              "wifi-speed"
             )}</li>
-          <li id="4">${localeData[7]["4"]}: ${getInfoString(
-              "network-wifi-signal"
+          <li id="4">${localeData[controls.col]["4"]}: ${getInfoString(
+              "wifi-signal"
             )}</li>
-          <li id="5">${localeData[7]["5"]}: ${getInfoString(
-              "network-wifi-ip"
+          <li id="5">${localeData[controls.col]["5"]}: ${getInfoString(
+              "wifi-ip"
             )}</li>
-          <li id="6">${localeData[7]["6"]}: ${getInfoString(
-              "network-wifi-frequency"
+          <li id="6">${localeData[controls.col]["6"]}: ${getInfoString(
+              "wifi-frequency"
             )}</li>
-          <li id="7">${localeData[7]["7"]}: ${getInfoString(
-              "network-wifi-internet"
+          <li id="7">${localeData[controls.col]["7"]}: ${getInfoString(
+              "wifi-internet"
             )}</li>
-          <li id="8">${localeData[7]["8"]}: ${getInfoString(
-              "network-wifi-hidden"
+          <li id="8">${localeData[controls.col]["8"]}: ${getInfoString(
+              "wifi-hidden"
             )}</li>
-          <li id="9">${localeData[7]["9"]}: ${getInfoString(
-              "network-wifi-mac"
+          <li id="9">${localeData[controls.col]["9"]}: ${getInfoString(
+              "wifi-mac"
             )}</li>
           `;
           }
-          this.splitAtRow.push(1, 9);
           rowCount = 10;
         } else {
           if (returnOnlyData) {
@@ -754,74 +698,79 @@ const menu = {
             }</li>`;
           }
         }
-
-        if (getInfoString("network-telephony-amount") > 0) {
-          for (let i = 0; i < getInfoString("network-telephony-amount"); i++) {
+        if (!returnOnlyData) {
+          menu += "</ul>";
+        }
+        rowCount--;
+        controls.rowLimit = rowCount;
+        this.enableRefresh = true;
+        break;
+      case 8:
+        if (returnOnlyData) {
+          menu = [];
+        } else {
+          menu = "<ul>";
+        }
+        if (getInfoString("network-amount") > 0) {
+          this.networkToggleList = [];
+          for (let i = 0; i < getInfoString("network-amount"); i++) {
+            this.networkToggleList.push(rowCount);
             if (returnOnlyData) {
               menu.push(
-                `${localeData[7]["10"]}: ${getInfoString(
-                  "network-telephony-type",
+                `${localeData[controls.col]["1"]}: ${getInfoString(
+                  "network-type",
                   i
                 )}`,
-                `${localeData[7]["11"]}: ${getInfoString(
-                  "network-telephony-sim-provider",
+                `${localeData[controls.col]["2"]}: ${getInfoString(
+                  "network-sim-provider",
                   i
                 )}`,
-                `${localeData[7]["12"]}: ${getInfoString(
-                  "network-telephony-sim-type",
+                `${localeData[controls.col]["3"]}: ${getInfoString(
+                  "network-sim-type",
                   i
                 )}`,
-                `${localeData[7]["13"]}: ${getInfoString(
-                  "network-telephony-sim-signal",
+                `${localeData[controls.col]["4"]}: ${getInfoString(
+                  "network-sim-signal",
                   i
                 )}`,
-                `${localeData[7]["14"]}: ${getInfoString(
-                  "network-telephony-sim-roaming",
+                `${localeData[controls.col]["5"]}: ${getInfoString(
+                  "network-sim-roaming",
                   i
                 )}`,
-                `${localeData[7]["15"]}: ${getInfoString(
-                  "network-telephony-sim-state",
+                `${localeData[controls.col]["6"]}: ${getInfoString(
+                  "network-sim-state",
                   i
                 )}`,
-                `${localeData[7]["16"]}: ${getInfoString(
-                  "network-telephony-sim-iccid",
+                `${localeData[controls.col]["7"]}: ${getInfoString(
+                  "network-sim-iccid",
                   i
                 )}`
               );
               rowCount += 7;
-              this.splitAtRow.push(rowCount - 7, rowCount - 1);
             } else {
               menu += `
-              <li id="${rowCount++}">${localeData[7]["10"]}: ${getInfoString(
-                "network-telephony-type",
-                i
-              )}</li>
-              <li id="${rowCount++}">${localeData[7]["11"]}: ${getInfoString(
-                "network-telephony-sim-provider",
-                i
-              )}</li>
-              <li id="${rowCount++}">${localeData[7]["12"]}: ${getInfoString(
-                "network-telephony-sim-type",
-                i
-              )}</li>
-              <li id="${rowCount++}">${localeData[7]["13"]}: ${getInfoString(
-                "network-telephony-sim-signal",
-                i
-              )}</li>
-              <li id="${rowCount++}">${localeData[7]["14"]}: ${getInfoString(
-                "network-telephony-sim-roaming",
-                i
-              )}</li>
-              <li id="${rowCount++}">${localeData[7]["15"]}: ${getInfoString(
-                "network-telephony-sim-state",
-                i
-              )}</li>
-              <li id="${rowCount++}">${localeData[7]["16"]}: ${getInfoString(
-                "network-telephony-sim-iccid",
-                i
-              )}</li>
+              <li id="${rowCount++}">${
+                localeData[controls.col]["1"]
+              }: ${getInfoString("network-type", i)}</li>
+              <li id="${rowCount++}">${
+                localeData[controls.col]["2"]
+              }: ${getInfoString("network-sim-provider", i)}</li>
+              <li id="${rowCount++}">${
+                localeData[controls.col]["3"]
+              }: ${getInfoString("network-sim-type", i)}</li>
+              <li id="${rowCount++}">${
+                localeData[controls.col]["4"]
+              }: ${getInfoString("network-sim-signal", i)}</li>
+              <li id="${rowCount++}">${
+                localeData[controls.col]["5"]
+              }: ${getInfoString("network-sim-roaming", i)}</li>
+              <li id="${rowCount++}">${
+                localeData[controls.col]["6"]
+              }: ${getInfoString("network-sim-state", i)}</li>
+              <li id="${rowCount++}">${
+                localeData[controls.col]["7"]
+              }: ${getInfoString("network-sim-iccid", i)}</li>
               `;
-              this.splitAtRow.push(rowCount - 7, rowCount - 1);
             }
           }
         } else {
@@ -837,39 +786,45 @@ const menu = {
         if (!returnOnlyData) {
           menu += "</ul>";
         }
-        rowCount--;
-        controls.rowLimit = rowCount;
         this.enableRefresh = true;
+        controls.rowLimit = rowCount - 1;
         break;
-      case 8:
-        navbarEntries = `<span id="l6" class="notactive">${localeData[6]["index"]}</span><span id="l7" class="notactive">${localeData[7]["index"]}</span><span id="l8" class="active">${localeData[8]["index"]}</span><span id="l9" class="notactive">${localeData[9]["index"]}</span>`;
+      case 9:
         if (getInfoString("bluetooth")) {
           if (returnOnlyData) {
             menu = [];
             menu.push(
-              `${localeData[8]["1"]}: ${getInfoString("bluetooth-status")}`,
-              `${localeData[8]["2"]}: ${getInfoString("bluetooth-name")}`,
-              `${localeData[8]["3"]}: ${getInfoString("bluetooth-address")}`,
-              `${localeData[8]["4"]}: ${getInfoString(
+              `${localeData[controls.col]["1"]}: ${getInfoString(
+                "bluetooth-status"
+              )}`,
+              `${localeData[controls.col]["2"]}: ${getInfoString(
+                "bluetooth-name"
+              )}`,
+              `${localeData[controls.col]["3"]}: ${getInfoString(
+                "bluetooth-address"
+              )}`,
+              `${localeData[controls.col]["4"]}: ${getInfoString(
                 "bluetooth-discoverable"
               )}`,
-              `${localeData[8]["5"]}: ${getInfoString("bluetooth-discovering")}`
+              `${localeData[controls.col]["5"]}: ${getInfoString(
+                "bluetooth-discovering"
+              )}`
             );
           } else {
             menu += `<ul>
-            <li id="1">${localeData[8]["1"]}: ${getInfoString(
+            <li id="1">${localeData[controls.col]["1"]}: ${getInfoString(
               "bluetooth-status"
             )}</li>
-            <li id="2">${localeData[8]["2"]}: ${getInfoString(
+            <li id="2">${localeData[controls.col]["2"]}: ${getInfoString(
               "bluetooth-name"
             )}</li>
-            <li id="3">${localeData[8]["3"]}: ${getInfoString(
+            <li id="3">${localeData[controls.col]["3"]}: ${getInfoString(
               "bluetooth-address"
             )}</li>
-            <li id="4">${localeData[8]["4"]}: ${getInfoString(
+            <li id="4">${localeData[controls.col]["4"]}: ${getInfoString(
               "bluetooth-discoverable"
             )}</li>
-            <li id="5">${localeData[8]["5"]}: ${getInfoString(
+            <li id="5">${localeData[controls.col]["5"]}: ${getInfoString(
               "bluetooth-discovering"
             )}</li>
             </ul> `;
@@ -885,23 +840,27 @@ const menu = {
         }
         this.enableRefresh = true;
         break;
-      case 9:
-        navbarEntries = `<span id="l7" class="notactive">${localeData[7]["index"]}</span><span id="l8" class="notactive">${localeData[8]["index"]}</span><span id="l9" class="active">${localeData[9]["index"]}</span><span id="l10" class="notactive">${localeData[10]["index"]}</span>`;
-
+      case 10:
         if (returnOnlyData) {
           menu = [];
           for (let i = 0; i < storageData.deviceStorages.length; i++) {
             menu.push(
-              `${localeData[9]["1"]}: ${getInfoString("storage-type", i)}`,
-              `${localeData[9]["2"]}: ${getInfoString(
+              `${localeData[controls.col]["1"]}: ${getInfoString(
+                "storage-type",
+                i
+              )}`,
+              `${localeData[controls.col]["2"]}: ${getInfoString(
                 "storage-space-total",
                 i
               )}`,
-              `${localeData[9]["3"]}: ${getInfoString(
+              `${localeData[controls.col]["3"]}: ${getInfoString(
                 "storage-space-left",
                 i
               )}`,
-              `${localeData[9]["4"]}: ${getInfoString("storage-default", i)}`
+              `${localeData[controls.col]["4"]}: ${getInfoString(
+                "storage-default",
+                i
+              )}`
             );
             rowCount += 4;
           }
@@ -913,22 +872,18 @@ const menu = {
           menu = "<ul>";
           for (let i = 0; i < storageData.deviceStorages.length; i++) {
             menu += `
-            <li id="${rowCount++}">${localeData[9]["1"]}: ${getInfoString(
-              "storage-type",
-              i
-            )}</li>
-            <li id="${rowCount++}">${localeData[9]["2"]}: ${getInfoString(
-              "storage-space-total",
-              i
-            )}</li>
-            <li id="${rowCount++}">${localeData[9]["3"]}: ${getInfoString(
-              "storage-space-left",
-              i
-            )}</li>
-            <li id="${rowCount++}">${localeData[9]["4"]}: ${getInfoString(
-              "storage-default",
-              i
-            )}</li>
+            <li id="${rowCount++}">${
+              localeData[controls.col]["1"]
+            }: ${getInfoString("storage-type", i)}</li>
+            <li id="${rowCount++}">${
+              localeData[controls.col]["2"]
+            }: ${getInfoString("storage-space-total", i)}</li>
+            <li id="${rowCount++}">${
+              localeData[controls.col]["3"]
+            }: ${getInfoString("storage-space-left", i)}</li>
+            <li id="${rowCount++}">${
+              localeData[controls.col]["4"]
+            }: ${getInfoString("storage-default", i)}</li>
              `;
           }
           menu += "</ul>";
@@ -941,32 +896,31 @@ const menu = {
         controls.rowLimit = rowCount - 1;
         this.enableRefresh = true;
         break;
-      case 10:
-        navbarEntries = `<span id="l9" class="notactive">${localeData[9]["index"]}</span><span id="l10" class="active">${localeData[10]["index"]}</span>`;
+      case 11:
         menu = `<ul>
         <li id = "1" style="height:80px;"><p style="font-size:20px; position:absolute; top:70px">
         KaiOS Backup</p>
         <p style="top:100px;position:absolute;">${localeData[4]["1"]} D3SXX</p>
         <img src="../assets/icons/KaiOS-Info_56.png" style="position:absolute; right:10px; top:85px">
         </li>
-        <li id = "2">${localeData[10]["2"]} ${buildInfo[0]}
+        <li id = "2">${localeData[controls.col]["2"]} ${buildInfo[0]}
         </li>
-        <li id = "3">${localeData[10]["3"]} ${buildInfo[1]}
+        <li id = "3">${localeData[controls.col]["3"]} ${buildInfo[1]}
         </li>
-        </ul>`
+        </ul>`;
         controls.rowLimit = 3;
         break;
     }
 
-    controls.colLimit = 10;
+    controls.colLimit = 11;
     if (returnOnlyData) return menu;
-    return [menu, navbarEntries];
+    return menu;
   },
 };
 
 function scrollHide() {
   let limit = 4;
-  if(draw.listMenuState){
+  if (draw.listMenuState) {
     limit = 6;
   }
   const entriesAmount = controls.rowLimit;
@@ -980,13 +934,6 @@ function scrollHide() {
     stopLimit = entriesAmount; // Prevent overflow
   }
   let startLimit = stopLimit - limit;
-  if (
-    menu.getHideListBoundaries("end")[0] >= startLimit &&
-    menu.hideList.includes(menu.getHideListBoundaries("start")[0])
-  ) {
-    debug.print("scrollHide() - startLimit < hideList end position, returning");
-    return;
-  }
   debug.print(
     `scrollHide() - startLimit: ${startLimit} , endLimit: ${stopLimit}`
   );
@@ -1063,25 +1010,26 @@ function getInfoString(item, arg = undefined) {
     case "battery-status":
     case "battery-temperature":
       return batteryData.get(item.replace("battery-", ""));
-    case "network-wifi":
-    case "network-wifi-type":
-    case "network-wifi-ssid":
-    case "network-wifi-speed":
-    case "network-wifi-signal":
-    case "network-wifi-ip":
-    case "network-wifi-frequency":
-    case "network-wifi-internet":
-    case "network-wifi-hidden":
-    case "network-wifi-mac":
-    case "network-telephony-type":
-    case "network-telephony-sim-provider":
-    case "network-telephony-sim-type":
-    case "network-telephony-sim-signal":
-    case "network-telephony-sim-roaming":
-    case "network-telephony-sim-state":
-    case "network-telephony-sim-iccid":
+    case "wifi":
+    case "wifi-type":
+    case "wifi-ssid":
+    case "wifi-speed":
+    case "wifi-signal":
+    case "wifi-ip":
+    case "wifi-frequency":
+    case "wifi-internet":
+    case "wifi-hidden":
+    case "wifi-mac":
+      return getWifiInfo(item);
+    case "network-type":
+    case "network-sim-provider":
+    case "network-sim-type":
+    case "network-sim-signal":
+    case "network-sim-roaming":
+    case "network-sim-state":
+    case "network-sim-iccid":
       return getNetworkInfo(item, arg);
-    case "network-telephony-amount":
+    case "network-amount":
       if (navigator.mozMobileConnections) {
         return navigator.mozMobileConnections.length;
       } else {
@@ -1146,7 +1094,9 @@ const storageData = {
           storageData.totalSpace.push(results[0] + results[1]);
           if (typeof callback === "function") {
             callback(
-              `storage data (${this.storageName[storageData.freeSpace.length - 1]})`,
+              `storage data (${
+                this.storageName[storageData.freeSpace.length - 1]
+              })`,
               storageData.freeSpace.length < storageData.deviceStorages.length
             );
           }
@@ -1260,16 +1210,37 @@ const systemData = {
   data: [],
   init: function (callback) {
     const userAgent = navigator.userAgent;
-    const nameString = userAgent.substring(userAgent.search(";") + 1);
-    this.model = nameString
-      .substring(0, nameString.search(";"))
-      .split("_")
-      .join(" ");
-    this.osVersion =
-      "KaiOS " +
-      userAgent.substring(userAgent.toUpperCase().search("KAIOS") + 6);
-    const firefoxString = userAgent.substring(userAgent.search("Firefox") + 8);
-    this.firefoxVersion = firefoxString.substring(0, firefoxString.search(" "));
+    let userAgentArr = [];
+    let data = ""
+
+    for(let i = 0; i<userAgent.length; i++){
+      if(userAgent[i] === " "){
+        userAgentArr.push(data);
+        data = "";
+      }
+      else if (userAgent[i] === "(" || userAgent[i] === ")" || userAgent[i] === ";"){
+        //pass
+      }
+      else if(userAgent[i] === "_" || userAgent[i] === "/"){
+        data += " ";
+      }
+      else{
+        data += userAgent[i]
+      }
+    }
+    userAgentArr.push(data);
+    if(userAgentArr.length < 6){
+      userAgentArr.unshift("")
+      userAgentArr[0] = userAgentArr[1];
+      userAgentArr[1] = userAgentArr[2];
+      userAgentArr[2] = "Unknown";
+    }
+    if(userAgentArr.length < 7){
+      userAgentArr.push("Unknown")
+    }
+    this.model = userAgentArr[2];
+    this.osVersion = userAgentArr[6].includes("KAIOS") ? `KaiOS ${userAgentArr[6].substring(6)}` : userAgentArr[6];
+    this.firefoxVersion = userAgentArr[5].includes("Firefox") ? userAgentArr[5].substring(8) : userAgentArr[5];
     if (navigator.hasFeature) {
       const getMemoryPromise = navigator.getFeature("hardware.memory");
       const getDeveloperModePromise = navigator.getFeature(
@@ -1294,13 +1265,13 @@ const systemData = {
 
 const displayData = {
   init: function (callback) {
-    this.screenOrientation = window.screen.mozOrientation || window.screen.orientation.type;
-    if(this.screenOrientation.includes("portrait")){
-      this.screenOrientation = "Portrait"
+    this.screenOrientation =
+      window.screen.mozOrientation || window.screen.orientation.type;
+    if (this.screenOrientation.includes("portrait")) {
+      this.screenOrientation = "Portrait";
       this.resolution = `${window.screen.height}x${window.screen.width}`;
-    }
-    else{
-      this.screenOrientation = "Landscape"
+    } else {
+      this.screenOrientation = "Landscape";
       this.resolution = `${window.screen.width}x${window.screen.height}`;
     }
     this.colorDepth = window.screen.colorDepth;
@@ -1308,10 +1279,9 @@ const displayData = {
     const commonDivisor = gcd(window.screen.width, window.screen.height);
     const ratioWidth = window.screen.width / commonDivisor;
     const ratioHeight = window.screen.height / commonDivisor;
-    if(this.screenOrientation === "Portrait"){
+    if (this.screenOrientation === "Portrait") {
       this.aspectRatio = `${ratioHeight}:${ratioWidth}`;
-    }
-    else{
+    } else {
       this.aspectRatio = `${ratioWidth}:${ratioHeight}`;
     }
     if (typeof callback === "function") {
@@ -1374,8 +1344,32 @@ function toggleBluetooth() {
   return true;
 }
 
+function toggleNetwork(sim) {
+  const NetworkData = navigator.mozMobileConnections[sim];
+  if (NetworkData === undefined) {
+    debug.print("toggleNetwork() - No access to API");
+    return false;
+  }
+  if (NetworkData.radioState === "disabled") {
+    NetworkData.setRadioEnabled(true);
+    debug.print(`toggleNetwork() - SIm ${sim + 1} - Radio enabled`);
+    toast(`SIM ${sim + 1} - Radio enabled`);
+  } else if (NetworkData.radioState === "enabled") {
+    NetworkData.setRadioEnabled(false);
+    debug.print(`toggleNetwork() - SIM ${sim + 1} - Radio disabled`);
+    toast(`SIM ${sim + 1} - Radio disabled`);
+  } else {
+    debug.print(
+      `toggleNetwork() - SIM ${sim + 1} - Radio ${NetworkData.radioState}`
+    );
+    toast(`SIM ${sim + 1} - Radio ${NetworkData.radioState}`);
+    return;
+  }
+  return true;
+}
+
 function toggleWifi() {
-  const wifiData  = navigator.mozWifiManager;
+  const wifiData = navigator.mozWifiManager;
   if (wifiData === undefined) {
     debug.print("toggleWifi() - No access to API");
     return false;
@@ -1392,118 +1386,117 @@ function toggleWifi() {
   return true;
 }
 
-function getNetworkInfo(type, sim) {
-  if (type.includes("wifi")) {
-    const wifiData = navigator.mozWifiManager;
-    if (wifiData === undefined) return false;
-    else if (type === "network-wifi") return true;
-    const wifiConnectionData = wifiData.connectionInformation;
-    const wifiStatus = wifiData.enabled ? "Enabled" : "Disabled";
-      switch (type) {
-        case "network-wifi-type":
-          return `Wi-Fi (${wifiStatus})`;
-        case "network-wifi-mac":
-          return wifiData.macAddress;
-        case "network-wifi-ssid":
-          return `${wifiData.connection.network ? wifiData.connection.network.ssid : wifiData.connection.status}`;
-        case "network-wifi-speed":
-          if(!wifiData.connection || !wifiConnectionData){
-            return wifiData.connection.status;
-          }
-          return `${wifiConnectionData.linkSpeed} Mbps (${wifiConnectionData.relSignalStrength} %)`;
-        case "network-wifi-signal":
-          if(!wifiConnectionData){
-            return wifiData.connection.status;
-          }
-          return `${wifiConnectionData.signalStrength} dBm`;
-        case "network-wifi-ip":
-          if(!wifiConnectionData){
-            return wifiData.connection.status;
-          }
-          return wifiConnectionData.ipAddress;
-        case "network-wifi-frequency":
-          if(!wifiConnectionData){
-            return wifiData.connection.status;
-          }
-          return `${wifiData.connection.network.frequency} MHz`;
-        case "network-wifi-internet":
-          return wifiData.hasInternet;
-        case "network-wifi-hidden":
-          if(!wifiConnectionData){
-            return wifiData.connection.status;
-          }
-          return wifiData.connection.network.hidden;
-
+function getWifiInfo(type) {
+  const wifiData = navigator.mozWifiManager;
+  if (wifiData === undefined) return false;
+  else if (type === "wifi") return true;
+  const wifiConnectionData = wifiData.connectionInformation;
+  const wifiStatus = wifiData.enabled ? "Enabled" : "Disabled";
+  switch (type) {
+    case "wifi-type":
+      return `Wi-Fi (${wifiStatus})`;
+    case "wifi-mac":
+      return wifiData.macAddress;
+    case "wifi-ssid":
+      return `${
+        wifiData.connection.network
+          ? wifiData.connection.network.ssid
+          : wifiData.connection.status
+      }`;
+    case "wifi-speed":
+      if (!wifiData.connection || !wifiConnectionData) {
+        return wifiData.connection.status;
       }
-    
-    
-  } else {
-    if (navigator.mozMobileConnections === undefined) return false;
-    const mobileData = navigator.mozMobileConnections[sim];
-    const mobileStatus = mobileData.radioState ? "Enabled" : "Disabled";
-    if (mobileStatus == "Enabled") {
-      let activeType = mobileData.data.type
-        ? mobileData.data.type.toUpperCase()
-        : undefined;
-      let activeSignal =
-        mobileData.signalStrength.lteSignalStrength === 99
-          ? undefined
-          : `${mobileData.signalStrength.lteSignalStrength} dBm`;
-      switch (type) {
-        case "network-telephony-type":
-          return `Cell - SIM ${sim + 1} (${
-            mobileData.radioState ? "Enabled" : "Disabled"
-          })`;
-        case "network-telephony-sim-provider":
-          return `${mobileData.data.network.longName || "Disconnected"}`;
-        case "network-telephony-sim-type":
-          if (!activeType) {
-            activeType =
-              mobileData.data.network.state === "connected"
-                ? "GSM"
-                : "Disconnected"; // if connected assume that it is GSM
-          }
-          return activeType;
-        case "network-telephony-sim-signal":
-          // GSM Signal strength described in section 8.5 (ETSI TS 127 007 V6.8.0) https://www.etsi.org/deliver/etsi_ts/127000_127099/127007/06.08.00_60/ts_127007v060800p.pdf
-          if (!activeSignal) {
-            activeSignal =
-              mobileData.signalStrength.gsmSignalStrength === 99
-                ? "Unknown"
-                : `${gsmSignalStrengthToDbm(
-                    mobileData.signalStrength.gsmSignalStrength
-                  )} dBm (${Math.round(
-                    (mobileData.signalStrength.gsmSignalStrength / 31) * 100
-                  )}%)`;
-          }
-          return activeSignal;
-        case "network-telephony-sim-roaming":
-          return mobileData.data.roaming;
-        case "network-telephony-sim-state":
-          return mobileData.voice.state;
-        case "network-telephony-sim-iccid":
-          return mobileData.iccId;
+      return `${wifiConnectionData.linkSpeed} Mbps (${wifiConnectionData.relSignalStrength} %)`;
+    case "wifi-signal":
+      if (!wifiConnectionData) {
+        return wifiData.connection.status;
       }
-    } else {
-      return "Disabled";
-    }
+      return `${wifiConnectionData.signalStrength} dBm`;
+    case "wifi-ip":
+      if (!wifiConnectionData) {
+        return wifiData.connection.status;
+      }
+      return wifiConnectionData.ipAddress;
+    case "wifi-frequency":
+      if (!wifiConnectionData) {
+        return wifiData.connection.status;
+      }
+      return `${wifiData.connection.network.frequency} MHz`;
+    case "wifi-internet":
+      return wifiData.hasInternet;
+    case "wifi-hidden":
+      if (!wifiConnectionData) {
+        return wifiData.connection.status;
+      }
+      return wifiData.connection.network.hidden;
   }
-  function gsmSignalStrengthToDbm(gsmSignalStrength) {
-    if (gsmSignalStrength === 0) {
-      return -113;
-    } else if (gsmSignalStrength === 1) {
-      return -111;
-    } else if (gsmSignalStrength >= 2 && gsmSignalStrength <= 30) {
-      let x1 = 2,
-        y1 = -109;
-      let x2 = 30,
-        y2 = -53;
-      return y1 + ((gsmSignalStrength - x1) * (y2 - y1)) / (x2 - x1);
-    } else if (gsmSignalStrength === 31) {
-      return -51;
-    } else {
-      return NaN;
-    }
+}
+
+function getNetworkInfo(type, sim) {
+  if (navigator.mozMobileConnections === undefined) return false;
+  const mobileData = navigator.mozMobileConnections[sim];
+  let activeType = mobileData.data.type
+    ? mobileData.data.type.toUpperCase()
+    : undefined;
+  let activeSignal =
+    mobileData.signalStrength.lteSignalStrength === 99
+      ? undefined
+      : `${mobileData.signalStrength.lteSignalStrength} dBm`;
+  switch (type) {
+    case "network-type":
+      return `Cell - SIM ${sim + 1} (${
+        mobileData.radioState[0].toUpperCase() + mobileData.radioState.slice(1)
+      })`;
+    case "network-sim-provider":
+      return `${mobileData.data.network.longName || "Disconnected"}`;
+    case "network-sim-type":
+      if (!activeType) {
+        activeType =
+          mobileData.data.network.state === "connected"
+            ? "GSM"
+            : "Disconnected"; // if connected assume that it is GSM
+      }
+      return activeType;
+    case "network-sim-signal":
+      // GSM Signal strength described in section 8.5 (ETSI TS 127 007 V6.8.0) https://www.etsi.org/deliver/etsi_ts/127000_127099/127007/06.08.00_60/ts_127007v060800p.pdf
+      if (!activeSignal && mobileData.radioState !== "disabled") {
+        activeSignal =
+          mobileData.signalStrength.gsmSignalStrength === 99
+            ? "Unknown"
+            : `${gsmSignalStrengthToDbm(
+                mobileData.signalStrength.gsmSignalStrength
+              )} dBm (${Math.round(
+                (mobileData.signalStrength.gsmSignalStrength / 31) * 100
+              )}%)`;
+      } else {
+        return "Disconnected";
+      }
+      return activeSignal;
+    case "network-sim-roaming":
+      return mobileData.data.roaming;
+    case "network-sim-state":
+      return mobileData.voice.state;
+    case "network-sim-iccid":
+      return mobileData.iccId;
+  }
+}
+
+function gsmSignalStrengthToDbm(gsmSignalStrength) {
+  if (gsmSignalStrength === 0) {
+    return -113;
+  } else if (gsmSignalStrength === 1) {
+    return -111;
+  } else if (gsmSignalStrength >= 2 && gsmSignalStrength <= 30) {
+    let x1 = 2,
+      y1 = -109;
+    let x2 = 30,
+      y2 = -53;
+    return y1 + ((gsmSignalStrength - x1) * (y2 - y1)) / (x2 - x1);
+  } else if (gsmSignalStrength === 31) {
+    return -51;
+  } else {
+    return NaN;
   }
 }
 
@@ -1518,10 +1511,9 @@ const cameraData = {
       cameraData.initStatus = false;
       return;
     }
-    try{
+    try {
       this.camerasList = navigator.mozCameras.getListOfCameras();
-    }
-    catch(e){
+    } catch (e) {
       if (typeof callback === "function") {
         callback("camera data (API Access failed)");
       }
@@ -1560,7 +1552,7 @@ const cameraData = {
           this.camerasList[currentCameras].slice(1)
         );
       case "camera-id":
-        return camera.camera.id.slice(1).slice(0,-1);
+        return camera.camera.id.slice(1).slice(0, -1);
       case "camera-photo-resolution":
         return `${(
           camera.camera.capabilities.pictureSizes[0].width *
@@ -1641,27 +1633,18 @@ function menuHover(row = undefined, pastRow = undefined, obj = undefined) {
   }
 }
 
-function removeAllElementsInString(string, element) {
-  // No support for replaceAll before firefox 77
-  let newString = string;
-  while (newString.indexOf(element) > -1) {
-    newString = newString.replace(element, "");
-  }
-  return newString;
-}
-
 function toast(msg = null) {
-  let toastElement = document.getElementById('toast');
+  let toastElement = document.getElementById("toast");
   if (msg != null) {
-    toastElement.classList.remove('notactive');
-    toastElement.classList.add('active');
+    toastElement.classList.remove("notactive");
+    toastElement.classList.add("active");
     toastElement.innerHTML = `<span>${msg}</span>`;
-    debug.print('toast() - Toast activated');
-    setTimeout(function() {
-      toastElement.classList.remove('active');
-      toastElement.classList.add('notactive');
-      debug.print('toast() - Toast deactivated');
-    }, 2 * 1000)
+    debug.print("toast() - Toast activated");
+    setTimeout(function () {
+      toastElement.classList.remove("active");
+      toastElement.classList.add("notactive");
+      debug.print("toast() - Toast deactivated");
+    }, 2 * 1000);
   }
 }
 

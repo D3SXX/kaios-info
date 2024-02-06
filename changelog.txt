@@ -1,3 +1,14 @@
+Build 1.0.0 from 06.02.2024
+Initial stable release
+Changes from 0.0.24:
+Improved initialization for system tab
+Improved navigation bar to automatically draw itself
+Separated Wi-Fi and Network to different tabs
+Added option to toggle network radio for each sim card
+Improved network status (now it correctly shows the state of radio)
+Removed code for hiding list (Network tab)
+Removed unused code
+
 Build 0.0.24 from 05.02.2024
 Added toasts
 Added the ability to toggle Wifi
