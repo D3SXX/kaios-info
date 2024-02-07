@@ -899,7 +899,7 @@ const menu = {
       case 11:
         menu = `<ul>
         <li id = "1" style="height:80px;"><p style="font-size:20px; position:absolute; top:70px">
-        KaiOS Backup</p>
+        KaiOS Info</p>
         <p style="top:100px;position:absolute;">${localeData[4]["1"]} D3SXX</p>
         <img src="../assets/icons/KaiOS-Info_56.png" style="position:absolute; right:10px; top:85px">
         </li>
