@@ -1,6 +1,6 @@
 "use strict";
 
-const buildInfo = ["1.0.0 Stable", "06.02.2024"];
+const buildInfo = ["1.0.1 Beta", "08.02.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -10,6 +10,7 @@ fetch("src/locale.json")
   .then((data) => initProgram(data));
 
 function initProgram(data) {
+  debug.toggle();
   const initFunctions = [
     (callback) => systemData.init(callback),
     (callback) => displayData.init(callback),
@@ -49,6 +50,7 @@ function finishInitialization(data) {
   draw.initSideMenu();
   draw.closeLoadingPage();
   draw.toggleListMenu();
+
 }
 
 const debug = {
@@ -172,6 +174,9 @@ const controls = {
       return;
     }
     switch (this.col) {
+      default:
+        draw.toggleDetails();
+        break;
       case 11:
         switch (controls.row) {
           case 1:
@@ -421,6 +426,20 @@ const draw = {
       softkeys.draw();
     }
   },
+  toggleDetails(){
+    this.detailsState = !this.detailsState;
+    debug.print(`draw.toggleDetails() - State is set to ${this.detailsState}`)
+    if(this.detailsState){
+      const element = document.getElementById("details");
+      element.innerHTML = `<span>${localeData[controls.col][controls.row+"-details"] || "No data available"}</span>`
+      element.classList.remove("notactive");
+      
+    }
+    else{
+      const element = document.getElementById("details");
+      element.classList.add("notactive");
+    }
+  }
 };
 
 const menu = {
@@ -900,7 +919,7 @@ const menu = {
         menu = `<ul>
         <li id = "1" style="height:80px;"><p style="font-size:20px; position:absolute; top:70px">
         KaiOS Info</p>
-        <p style="top:100px;position:absolute;">${localeData[4]["1"]} D3SXX</p>
+        <p style="top:100px;position:absolute;">${localeData[controls.col]["1"]} D3SXX</p>
         <img src="../assets/icons/KaiOS-Info_56.png" style="position:absolute; right:10px; top:85px">
         </li>
         <li id = "2">${localeData[controls.col]["2"]} ${buildInfo[0]}

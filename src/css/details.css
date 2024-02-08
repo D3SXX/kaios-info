@@ -1,0 +1,38 @@
+#details {
+    z-index: 4;
+    position: fixed;
+    bottom: 30px;
+    width: 100%;
+    height: auto;
+    right:0px;
+    background: white;
+    border-top: 1px solid #79c761;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 1;
+    overflow-wrap: break-word;
+    transition: bottom 0.35s;
+}
+
+#details span{
+    width: 100%;
+
+}
+
+#details .syntax {
+    font-size: 15px;
+    background-color: black;
+    color: lightgray;
+    overflow-wrap: break-word;
+}
+
+#details .link {
+    font-size: px;
+}
+
+
+#details.notactive {
+    bottom: -320px;
+}

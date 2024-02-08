@@ -3,7 +3,12 @@
        [   
            {"softLeftToggle":"Toggle","softCenter":"Select","softRight":"Menu","close":"Close","errorOnApi":"Couldn't get access to Api","errorOnEmptyList":"Device list is empty","sidemenu-exit":"Exit","sidemenu-togglerefresh":"Toggle auto refresh","sidemenu-about":"About","sidemenu-openlistmenu":"Open list"
             },
-            {"1":"Model","2":"OS","3":"Firefox Version","4":"RAM","5":"Developer Mode","index":"System"},
+            {"1":"Model","2":"OS","3":"Firefox Version","4":"RAM","5":"Developer Mode","index":"System",
+            "1-details":"Uses User-Agent to identify the model <br> In this example it is located under 'platform' <br> <text class='syntax'>Mozilla/5.0 ('system-information') 'platform' ('platform-details') 'extensions'</text> <br> <text class='link'>Source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent </text>",
+            "2-details":"Uses User-Agent to identify the OS <br> In this example it is located under 'extensions' <br> <text class='syntax'>Mozilla/5.0 ('system-information') 'platform' ('platform-details') 'extensions'</text> <br> <text class='link'>Source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent </text>",
+            "3-details":"Uses User-Agent to identify the OS <br> In this example it is located under 'extensions' <br> <text class='syntax'>Mozilla/5.0 ('system-information') 'platform' ('platform-details') 'extensions'</text> <br> <text class='link'>Source: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent </text>",
+            "4-details":"Uses getFeature() to identify the amount of RAM <br> <text class='syntax'>navigator.getFeature ('hardware.memory')</text> <br> <text class='link'>Source: https://wiki.mozilla.org/WebAPI/Navigator.hasFeature </text>",
+            "5-details":"Uses getFeature() to identify the Developer Mode status <br> <text class='syntax'>navigator.getFeature ('dom.apps.developer_mode')</text> <br> <text class='link'>Source: https://kaios.dev/2024/01/complete-feature-detection-on-kaios/ </text>"},
             {"1":"Resolution","2":"Depth","3":"Aspect ratio","4":"Orientation","index":"Display"},
             {"1":"Cores","2":"Frequency","index":"CPU"},
             {"1":"Model","2":"Manufacturer","index":"GPU"},
