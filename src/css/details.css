@@ -1,5 +1,5 @@
 #details {
-    z-index: 4;
+    z-index: 0;
     position: fixed;
     bottom: 30px;
     width: 100%;
@@ -12,9 +12,51 @@
     flex-direction: column;
     align-items: center;
     opacity: 1;
-    overflow-wrap: break-word;
+    word-wrap: anywhere;
+    overflow-wrap: anywhere;
     transition: bottom 0.35s;
 }
+
+#details .container{
+    height: 233px;
+    width: 100%;
+}
+
+#details .container .title{
+    font-weight: bold;
+    text-align: left;
+    background: radial-gradient(circle at right, white, white, #6eb15a), 100%;
+    color: white;
+    border-bottom: 1px solid black;
+    
+}
+
+#details .menuItem {
+    padding: 0px;
+    padding-left: 5px;
+    height: 0px;
+    visibility: hidden;
+}
+
+#details .menuItem.hovered{
+    padding-top: 5px;
+    height: 163px;
+    visibility: visible;
+    background-color: white;
+    color: black;
+    animation-name: itemHover;
+    animation-duration: 0.5s;
+}
+
+@keyframes itemHover {
+    from {
+        color: #ffffff;
+    }
+    to {
+        color: black;
+    }
+  }
+
 
 #details span{
     width: 100%;
@@ -22,10 +64,7 @@
 }
 
 #details .syntax {
-    font-size: 15px;
-    background-color: black;
-    color: lightgray;
-    overflow-wrap: break-word;
+    font-family: Consolas, monaco, monospace;
 }
 
 #details .link {

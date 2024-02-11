@@ -1,6 +1,6 @@
 "use strict";
 
-const buildInfo = ["1.0.1a Beta", "09.02.2024"];
+const buildInfo = ["1.0.1b Beta", "11.02.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -228,6 +228,10 @@ const controls = {
         return;
       }
     }
+    if(draw.detailsState){
+      rowType = rowType + "Details";
+      hoverArg = "details-";
+    }
     if (draw.listMenuState) {
       hoverArg = "";
       let pastCol = controls.col;
@@ -427,17 +431,24 @@ const draw = {
     }
   },
   toggleDetails(){
+    controls.rowDetailsLimit = 3;
+    controls.rowDetails = 1;
     this.detailsState = !this.detailsState;
     debug.print(`draw.toggleDetails() - State is set to ${this.detailsState}`)
     if(this.detailsState){
       const element = document.getElementById("details");
-      element.innerHTML = `<span>${localeData[controls.col][controls.row+"-details"] || "No data available"}</span>`
+      const description = `<div class="title">Description</div><div class="menuItem" id="details-1">${localeData[controls.col][controls.row+"-details-description"] || "No description available"}</div>`;
+      const example = `<div class="title">Example</div><div class="menuItem" id="details-2" >${localeData[controls.col][controls.row+"-details-example"] || "No examples available"}</div>`;
+      const source = `<div class="title">Source</div><div class="menuItem" id="details-3">${localeData[controls.col][controls.row+"-details-source"] || "No sources available"}</div>`;
+      element.innerHTML = `<div class="container">${description + example + source}</div>`
       element.classList.remove("notactive");
+      menuHover(controls.rowDetails,undefined,"details-")
       
     }
     else{
       const element = document.getElementById("details");
       element.classList.add("notactive");
+      menuHover(undefined,controls.rowDetails,"details-")
     }
   }
 };
@@ -938,16 +949,23 @@ const menu = {
 };
 
 function scrollHide() {
+  let row = "row";
   let limit = 4;
+  let obj = "";
   if (draw.listMenuState) {
     limit = 6;
   }
-  const entriesAmount = controls.rowLimit;
+  if(draw.detailsState){
+    limit = 1;
+    row = row + "Details"
+    obj = "details-"
+  }
+  const entriesAmount = controls[row + "Limit"];
   if (entriesAmount <= limit) {
     return;
   }
   const scrolls = Math.ceil(entriesAmount / limit);
-  const currentScrollPos = Math.ceil(controls.row / limit);
+  const currentScrollPos = Math.ceil(controls[row] / limit);
   let stopLimit = currentScrollPos * limit + 1;
   if (stopLimit > entriesAmount) {
     stopLimit = entriesAmount; // Prevent overflow
@@ -956,11 +974,11 @@ function scrollHide() {
   debug.print(
     `scrollHide() - startLimit: ${startLimit} , endLimit: ${stopLimit}`
   );
-  showElements("", startLimit, stopLimit);
+  showElements(obj, startLimit, stopLimit);
   if (scrolls == currentScrollPos) {
     startLimit += 1; // Prevent overflow in the last scroll
   }
-  hideElements("", 1, startLimit - 1, stopLimit);
+  hideElements(obj, 1, startLimit - 1, stopLimit);
 }
 
 function hideElement(id) {
