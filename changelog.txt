@@ -1,3 +1,6 @@
+Build 1.0.1c Beta from 11.02.2024
+Converted details for the new UI
+
 Build 1.0.1b Beta from 11.02.2024
 Added new UI for pop-up menu with details
 Added details for the Camera tab

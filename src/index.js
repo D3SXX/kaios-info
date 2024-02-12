@@ -1,6 +1,6 @@
 "use strict";
 
-const buildInfo = ["1.0.1b Beta", "11.02.2024"];
+const buildInfo = ["1.0.1c Beta", "12.02.2024"];
 let localeData;
 
 fetch("src/locale.json")
