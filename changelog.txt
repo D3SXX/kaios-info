@@ -1,4 +1,7 @@
-Build 1.0.1c Beta from 11.02.2024
+Build 1.0.1d Beta from 13.02.2024
+Added details for the GPU, Camera and Battery tabs
+
+Build 1.0.1c Beta from 12.02.2024
 Converted details for the new UI
 
 Build 1.0.1b Beta from 11.02.2024
