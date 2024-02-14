@@ -1,3 +1,7 @@
+Build 1.0.1e Beta from 13.02.2024
+Added details for the Wi-Fi and Network tabs
+Network tab now correctly shows "status" row when radio is disabled
+
 Build 1.0.1d Beta from 13.02.2024
 Added details for the GPU, Camera and Battery tabs
 
