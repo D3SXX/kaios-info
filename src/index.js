@@ -1,6 +1,6 @@
 "use strict";
 
-const buildInfo = ["1.0.1e Beta", "14.02.2024"];
+const buildInfo = ["1.0.1f Beta", "15.02.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -1514,7 +1514,7 @@ function getNetworkInfo(type, sim) {
     case "network-sim-roaming":
       return mobileData.data.roaming;
     case "network-sim-state":
-      return mobileData.voice.state || "Disconnected";
+      return mobileData.voice.state || "Disabled";
     case "network-sim-iccid":
       return mobileData.iccId;
   }

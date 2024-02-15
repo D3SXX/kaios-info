@@ -205,7 +205,22 @@
       "3": "Address",
       "4": "Discoverable",
       "5": "Discovering",
-      "index": "Bluetooth"
+      "index": "Bluetooth",
+      "1-details-description": "Uses navigator. mozBluetooth to access the Bluetooth API, then reads .defaultAdapter.state to identify bluetooth status",
+      "1-details-example": "bluetoothData = navigator.mozBluetooth.defaultAdapter; status = bluetoothData.state",
+      "1-details-source": "https://developer.kaiostech.com/docs/api/web-apis/bluetooth/bluetooth/",
+      "2-details-description": "Uses navigator. mozBluetooth to access the Bluetooth API, then reads .defaultAdapter.name to identify bluetooth name",
+      "2-details-example": "bluetoothData = navigator.mozBluetooth.defaultAdapter; status = bluetoothData.name",
+      "2-details-source": "https://developer.kaiostech.com/docs/api/web-apis/bluetooth/bluetooth/",
+      "3-details-description": "Uses navigator. mozBluetooth to access the Bluetooth API, then reads .defaultAdapter.address to identify bluetooth address",
+      "3-details-example": "bluetoothData = navigator.mozBluetooth.defaultAdapter; status = bluetoothData.address",
+      "3-details-source": "https://developer.kaiostech.com/docs/api/web-apis/bluetooth/bluetooth/",
+      "4-details-description": "Uses navigator. mozBluetooth to access the Bluetooth API, then reads .defaultAdapter.discoverable to identify bluetooth discoverable status",
+      "4-details-example": "bluetoothData = navigator.mozBluetooth.defaultAdapter; status = bluetoothData.discoverable",
+      "4-details-source": "https://developer.kaiostech.com/docs/api/web-apis/bluetooth/bluetooth/",
+      "5-details-description": "Uses navigator. mozBluetooth to access the Bluetooth API, then reads .defaultAdapter.discovering to identify bluetooth discovering status",
+      "5-details-example": "bluetoothData = navigator.mozBluetooth.defaultAdapter; status = bluetoothData.discovering",
+      "5-details-source": "https://developer.kaiostech.com/docs/api/web-apis/bluetooth/bluetooth/"
     },
     {
       "1": "Type",
