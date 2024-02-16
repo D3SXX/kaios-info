@@ -1,3 +1,7 @@
+Build 1.0.1g Beta from 16.02.2024
+Added details for storage tab
+Improved CSS for details
+
 Build 1.0.1f Beta from 14.02.2024
 Added details for bluetooth tab
 

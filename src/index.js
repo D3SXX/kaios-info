@@ -1,6 +1,6 @@
 "use strict";
 
-const buildInfo = ["1.0.1f Beta", "15.02.2024"];
+const buildInfo = ["1.0.1g Beta", "16.02.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -11,6 +11,8 @@ fetch("src/locale.json")
 
 function initProgram(data) {
   debug.toggle();
+  const userLocale = navigator.language;
+  localeData = data[userLocale] || data["en-US"];
   const initFunctions = [
     (callback) => systemData.init(callback),
     (callback) => displayData.init(callback),
@@ -40,10 +42,8 @@ function initProgram(data) {
   });
 }
 
-function finishInitialization(data) {
+function finishInitialization() {
   navigator.mozBluetooth;
-  const userLocale = navigator.language;
-  localeData = data[userLocale] || data["en-US"];
   console.log(`KaiOS Info ver. ${buildInfo[0]} initialized`);
   softkeys.draw();
   draw.initListMenu();
@@ -985,7 +985,13 @@ function hideElement(id) {
   document.getElementById(id).style.display = "none";
 }
 function showElement(id) {
-  document.getElementById(id).style.display = "flex";
+  if(draw.detailsState){
+    document.getElementById(id).style.display = "block";
+  }
+  else{
+    document.getElementById(id).style.display = "flex";
+  }
+  
 }
 
 function showElements(obj, start, end) {
@@ -1014,13 +1020,13 @@ function getInfoString(item, arg = undefined) {
     case "system-firefox":
       return systemData.firefoxVersion;
     case "system-ram":
-      return `${systemData.ram} MB`;
+      return `${systemData.ram} ${localeData[0]["megabytes"]}`;
     case "system-developer":
       return systemData.developerMode;
     case "display-resolution":
       return displayData.resolution;
     case "display-depth":
-      return `${displayData.colorDepth}-bit color`;
+      return `${displayData.colorDepth}-${localeData[0]["bit-color"]}`;
     case "display-aspect-ratio":
       return displayData.aspectRatio;
     case "display-orientation":
@@ -1028,7 +1034,7 @@ function getInfoString(item, arg = undefined) {
     case "cpu-cores":
       return cpuData.coresAmount;
     case "cpu-frequency":
-      return `~${cpuData.estimatedFrequency} GHz`;
+      return `~${cpuData.estimatedFrequency} ${localeData[0]["ghz"]}`;
     case "gpu":
       return gpuData.model;
     case "gpu-man":
@@ -1086,14 +1092,14 @@ function getInfoString(item, arg = undefined) {
       }
     case "storage-type":
       return storageData.storageName[arg] == "sdcard"
-        ? `Internal (${storageData.storageName[arg]})`
-        : `External (${storageData.storageName[arg]})`;
+        ? `${localeData[0]["internal"]} (${storageData.storageName[arg]})`
+        : `${localeData[0]["external"]} (${storageData.storageName[arg]})`;
     case "storage-space-total":
-      return `${(storageData.totalSpace[arg] * 1e-9).toFixed(2)} GB`;
+      return `${(storageData.totalSpace[arg] * 1e-9).toFixed(2)} ${localeData[0]["gigabytes"]}`;
     case "storage-space-left":
       return `${(storageData.usedSpace[arg] * 1e-9).toFixed(
         2
-      )} GB (${Math.round(
+      )} ${localeData[0]["gigabytes"]} (${Math.round(
         (storageData.usedSpace[arg] / storageData.totalSpace[arg]) * 100
       )} %)`;
     case "storage-default":
@@ -1215,7 +1221,7 @@ const batteryData = {
     } else if (type == "status") {
       if (this.data.charging) {
         if (this.data.chargingTime == 0) {
-          returnString = "Charged";
+          returnString = localeData[0]["charged"];
         } else {
           let remainingTime = "";
           if (this.data.chargingTime != Infinity) {
@@ -1223,9 +1229,9 @@ const batteryData = {
             const minutes = Math.ceil((hours - Math.floor(hours)) * 60);
             const additionalZero = minutes < 10 ? "0" : "";
             hours = Math.floor(hours);
-            remainingTime = `(${hours}:${additionalZero}${minutes} left)`;
+            remainingTime = `(${hours}:${additionalZero}${minutes} ${localeData[0]["left"]})`;
           }
-          returnString = `Charging ${remainingTime}`;
+          returnString = `${localeData[0]["charging"]} ${remainingTime}`;
         }
       } else {
         let remainingTime = "";
@@ -1236,7 +1242,7 @@ const batteryData = {
           hours = Math.floor(hours);
           remainingTime = `(${hours}:${additionalZero}${minutes} left)`;
         }
-        returnString = `Discharging ${remainingTime}`;
+        returnString = `${localeData[0]["discharging"]} ${remainingTime}`;
       }
     }
     return returnString;
@@ -1286,7 +1292,7 @@ const systemData = {
       Promise.all([getMemoryPromise, getDeveloperModePromise]).then(
         (results) => {
           systemData.ram = results[0];
-          systemData.developerMode = results[1];
+          systemData.developerMode = results[1] ? localeData[0]["yes"] : localeData[0]["no"];
           if (typeof callback === "function") {
             callback("system data");
           }
@@ -1305,10 +1311,10 @@ const displayData = {
     this.screenOrientation =
       window.screen.mozOrientation || window.screen.orientation.type;
     if (this.screenOrientation.includes("portrait")) {
-      this.screenOrientation = "Portrait";
+      this.screenOrientation = localeData[0]["portrait"];
       this.resolution = `${window.screen.height}x${window.screen.width}`;
     } else {
-      this.screenOrientation = "Landscape";
+      this.screenOrientation = localeData[0]["landscape"];
       this.resolution = `${window.screen.width}x${window.screen.height}`;
     }
     this.colorDepth = window.screen.colorDepth;
