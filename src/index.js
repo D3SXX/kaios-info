@@ -1,6 +1,6 @@
 "use strict";
 
-const buildInfo = ["1.0.1g Beta", "16.02.2024"];
+const buildInfo = ["1.0.1h Beta", "17.02.2024"];
 let localeData;
 
 fetch("src/locale.json")
@@ -159,7 +159,7 @@ const controls = {
           break;
         case 2:
           menu.forceDisableRefresh = !menu.forceDisableRefresh;
-          toast(`Auto refresh is set to ${!menu.forceDisableRefresh}`);
+          toast(menu.forceDisableRefresh ? localeData[0]["autoRefreshDisable"] : localeData[0]["autoRefreshEnable"]);
           debug.print(
             `controls.handleEnter() - forceDisableRefresh is set to ${menu.forceDisableRefresh}`
           );
@@ -375,10 +375,10 @@ const draw = {
   },
   initSideMenu() {
     const menuElements = [
-      localeData[0]["sidemenu-openlistmenu"],
-      localeData[0]["sidemenu-togglerefresh"],
-      localeData[0]["sidemenu-about"],
-      [localeData[0]["sidemenu-exit"]],
+      localeData[0]["sideMenuOpenListMenu"],
+      localeData[0]["SideMenuToggleRefresh"],
+      localeData[0]["sideMenuAbout"],
+      [localeData[0]["sideMenuExit"]],
     ];
     const element = document.getElementById("menu");
     let menuData = "";
@@ -433,13 +433,17 @@ const draw = {
   toggleDetails(){
     controls.rowDetailsLimit = 3;
     controls.rowDetails = 1;
+    let row = controls.row;
     this.detailsState = !this.detailsState;
     debug.print(`draw.toggleDetails() - State is set to ${this.detailsState}`)
+    if(controls.col === 8 && controls.row > 7){
+      row = row - 7;
+    }
     if(this.detailsState){
       const element = document.getElementById("details");
-      const description = `<div class="title">Description</div><div class="menuItem" id="details-1">${localeData[controls.col][controls.row+"-details-description"] || "No description available"}</div>`;
-      const example = `<div class="title">Example</div><div class="menuItem" id="details-2" >${localeData[controls.col][controls.row+"-details-example"] || "No examples available"}</div>`;
-      const source = `<div class="title">Source</div><div class="menuItem" id="details-3">${localeData[controls.col][controls.row+"-details-source"] || "No sources available"}</div>`;
+      const description = `<div class="title">Description</div><div class="menuItem" id="details-1">${localeData[controls.col][row+"-details-description"] || localeData[0]["errorOnDescription"]}</div>`;
+      const example = `<div class="title">Example</div><div class="menuItem" id="details-2" >${localeData[controls.col][row+"-details-example"] || localeData[0]["errorOnExample"]}</div>`;
+      const source = `<div class="title">Source</div><div class="menuItem" id="details-3">${localeData[controls.col][row+"-details-source"] || localeData[0]["errorOnSource"]}</div>`;
       element.innerHTML = `<div class="container">${description + example + source}</div>`
       element.classList.remove("notactive");
       menuHover(controls.rowDetails,undefined,"details-")
@@ -1020,13 +1024,13 @@ function getInfoString(item, arg = undefined) {
     case "system-firefox":
       return systemData.firefoxVersion;
     case "system-ram":
-      return `${systemData.ram} ${localeData[0]["megabytes"]}`;
+      return systemData.ram;
     case "system-developer":
       return systemData.developerMode;
     case "display-resolution":
       return displayData.resolution;
     case "display-depth":
-      return `${displayData.colorDepth}-${localeData[0]["bit-color"]}`;
+      return displayData.colorDepth;
     case "display-aspect-ratio":
       return displayData.aspectRatio;
     case "display-orientation":
@@ -1128,7 +1132,7 @@ const storageData = {
       this.isDefault = [];
       for (let i = 0; i < this.deviceStorages.length; i++) {
         this.storageName.push(this.deviceStorages[i].storageName);
-        this.isDefault.push(this.deviceStorages[i].default);
+        this.isDefault.push(this.deviceStorages[i].default ? localeData[0]["yes"] : localeData[0]["no"]);
         const freeSpacePromise = this.deviceStorages[i].freeSpace();
         const usedSpacePromise = this.deviceStorages[i].usedSpace();
         Promise.all([freeSpacePromise, usedSpacePromise]).then((results) => {
@@ -1178,7 +1182,7 @@ const storageData = {
     this.onGoing = true;
     for (let i = 0; i < this.deviceStorages.length; i++) {
       this.storageNameTmp.push(this.deviceStorages[i].storageName);
-      this.isDefaultTmp.push(this.deviceStorages[i].default);
+      this.isDefaultTmp.push(this.deviceStorages[i].default ? localeData[0]["yes"] : localeData[0]["no"]);
       const freeSpacePromise = this.deviceStorages[i].freeSpace();
       const usedSpacePromise = this.deviceStorages[i].usedSpace();
       Promise.all([freeSpacePromise, usedSpacePromise]).then((results) => {
@@ -1291,7 +1295,7 @@ const systemData = {
       );
       Promise.all([getMemoryPromise, getDeveloperModePromise]).then(
         (results) => {
-          systemData.ram = results[0];
+          systemData.ram = `${results[0]} ${localeData[0]["megabytes"]}`;
           systemData.developerMode = results[1] ? localeData[0]["yes"] : localeData[0]["no"];
           if (typeof callback === "function") {
             callback("system data");
@@ -1299,6 +1303,8 @@ const systemData = {
         }
       );
     } else {
+      this.ram = localeData[0]["errorOnApiSmall"];
+      this.developerMode = localeData[0]["errorOnApiSmall"];
       if (typeof callback === "function") {
         callback("system data (1/2 API Access failed)");
       }
@@ -1317,7 +1323,7 @@ const displayData = {
       this.screenOrientation = localeData[0]["landscape"];
       this.resolution = `${window.screen.width}x${window.screen.height}`;
     }
-    this.colorDepth = window.screen.colorDepth;
+    this.colorDepth = `${window.screen.colorDepth}-${localeData[0]["bit-color"]}`;
     const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
     const commonDivisor = gcd(window.screen.width, window.screen.height);
     const ratioWidth = window.screen.width / commonDivisor;
@@ -1359,13 +1365,13 @@ function getBluetoothInfo(type) {
         bluetoothData.state[0].toUpperCase() + bluetoothData.state.slice(1)
       );
     case "bluetooth-name":
-      return bluetoothData.name;
+      return bluetoothData.name || localeData["unknown"];
     case "bluetooth-address":
-      return bluetoothData.address;
+      return bluetoothData.address || localeData["unknown"];
     case "bluetooth-discoverable":
-      return bluetoothData.discoverable;
+      return bluetoothData.discoverable ? localeData[0]["yes"] : localeData[0]["no"];
     case "bluetooth-discovering":
-      return bluetoothData.discovering;
+      return bluetoothData.discovering ? localeData[0]["yes"] : localeData[0]["no"];
   }
 }
 
@@ -1378,11 +1384,11 @@ function toggleBluetooth() {
   if (bluetoothData.defaultAdapter.state === "disabled") {
     bluetoothData.defaultAdapter.enable();
     debug.print("toggleBluetooth() - Bluetooth enabled");
-    toast("Bluetooth enabled");
+    toast(`Bluetooth ${localeData[0]["enabled"]}`);
   } else {
     bluetoothData.defaultAdapter.disable();
     debug.print("toggleBluetooth() - Bluetooth disabled");
-    toast("Bluetooth disabled");
+    toast(`Bluetooth ${localeData[0]["disabled"]}`);
   }
   return true;
 }
@@ -1395,12 +1401,12 @@ function toggleNetwork(sim) {
   }
   if (NetworkData.radioState === "disabled") {
     NetworkData.setRadioEnabled(true);
-    debug.print(`toggleNetwork() - SIm ${sim + 1} - Radio enabled`);
-    toast(`SIM ${sim + 1} - Radio enabled`);
+    debug.print(`toggleNetwork() - SIM ${sim + 1} - Radio enabled`);
+    toast(`SIM ${sim + 1} - ${localeData[0]["radioEnabled"]}`);
   } else if (NetworkData.radioState === "enabled") {
     NetworkData.setRadioEnabled(false);
     debug.print(`toggleNetwork() - SIM ${sim + 1} - Radio disabled`);
-    toast(`SIM ${sim + 1} - Radio disabled`);
+    toast(`SIM ${sim + 1} - ${localeData[0]["radioDisabled"]}`);
   } else {
     debug.print(
       `toggleNetwork() - SIM ${sim + 1} - Radio ${NetworkData.radioState}`
@@ -1420,11 +1426,11 @@ function toggleWifi() {
   if (wifiData.enabled == false) {
     wifiData.setWifiEnabled(true);
     debug.print("toggleWifi() - Wifi enabled");
-    toast("Wifi enabled");
+    toast(`Wifi ${localeData[0]["enabled"]}`);
   } else {
     wifiData.setWifiEnabled(false);
     debug.print("toggleWifi() - Wifi disabled");
-    toast("Wifi disabled");
+    toast(`Wifi ${localeData[0]["disabled"]}`);
   }
   return true;
 }
@@ -1434,12 +1440,12 @@ function getWifiInfo(type) {
   if (wifiData === undefined) return false;
   else if (type === "wifi") return true;
   const wifiConnectionData = wifiData.connectionInformation;
-  const wifiStatus = wifiData.enabled ? "Enabled" : "Disabled";
+  const wifiStatus = wifiData.enabled ? localeData[0]["enabled"] : localeData[0]["disabled"];
   switch (type) {
     case "wifi-type":
       return `Wi-Fi (${wifiStatus})`;
     case "wifi-mac":
-      return wifiData.macAddress;
+      return wifiData.macAddress == "null" ? localeData[0]["unknown"] : wifiData.macAddress;
     case "wifi-ssid":
       return `${
         wifiData.connection.network
@@ -1450,12 +1456,12 @@ function getWifiInfo(type) {
       if (!wifiData.connection || !wifiConnectionData) {
         return wifiData.connection.status;
       }
-      return `${wifiConnectionData.linkSpeed} Mbps (${wifiConnectionData.relSignalStrength} %)`;
+      return `${wifiConnectionData.linkSpeed} ${localeData[0]["mbps"]} (${wifiConnectionData.relSignalStrength} %)`;
     case "wifi-signal":
       if (!wifiConnectionData) {
         return wifiData.connection.status;
       }
-      return `${wifiConnectionData.signalStrength} dBm`;
+      return `${wifiConnectionData.signalStrength} ${localeData[0]["dbm"]}`;
     case "wifi-ip":
       if (!wifiConnectionData) {
         return wifiData.connection.status;
@@ -1465,14 +1471,14 @@ function getWifiInfo(type) {
       if (!wifiConnectionData) {
         return wifiData.connection.status;
       }
-      return `${wifiData.connection.network.frequency} MHz`;
+      return `${wifiData.connection.network.frequency} ${localeData[0]["mhz"]}`;
     case "wifi-internet":
-      return wifiData.hasInternet;
+      return wifiData.hasInternet ? localeData[0]["yes"] : localeData[0]["no"];
     case "wifi-hidden":
       if (!wifiConnectionData) {
         return wifiData.connection.status;
       }
-      return wifiData.connection.network.hidden;
+      return wifiData.connection.network.hidden ? localeData[0]["yes"] : localeData[0]["no"];
   }
 }
 
@@ -1489,22 +1495,22 @@ function getNetworkInfo(type, sim) {
   switch (type) {
     case "network-type":
       return `Cell - SIM ${sim + 1} (${
-        mobileData.radioState[0].toUpperCase() + mobileData.radioState.slice(1)
+        mobileData.radioState == "enabled" ? localeData[0]["enabled"] : localeData[0]["disabled"]
       })`;
     case "network-sim-provider":
-      return `${mobileData.data.network.longName || "Disconnected"}`;
+      return `${mobileData.data.network.longName || localeData[0]["disconnected"]}`;
     case "network-sim-type":
       if (!activeType) {
         activeType =
           mobileData.data.network.state === "connected"
             ? "GSM"
-            : "Disconnected"; // if connected assume that it is GSM
+            : localeData[0]["disconnected"]; // if connected assume that it is GSM
       }
       return activeType;
     case "network-sim-signal":
       // GSM Signal strength described in section 8.5 (ETSI TS 127 007 V6.8.0) https://www.etsi.org/deliver/etsi_ts/127000_127099/127007/06.08.00_60/ts_127007v060800p.pdf
       if(mobileData.radioState === "disabled"){
-        return "Disconnected"
+        return localeData[0]["disconnected"]
       }
       if (!activeSignal) {
         activeSignal =
@@ -1518,11 +1524,11 @@ function getNetworkInfo(type, sim) {
       }
       return activeSignal;
     case "network-sim-roaming":
-      return mobileData.data.roaming;
+      return mobileData.data.roaming ? localeData[0]["yes"] : localeData[0]["no"];
     case "network-sim-state":
-      return mobileData.voice.state || "Disabled";
+      return mobileData.voice.state || localeData[0]["disabled"];
     case "network-sim-iccid":
-      return mobileData.iccId;
+      return mobileData.iccId || localeData[0]["unknown"];
   }
 }
 

@@ -1,3 +1,9 @@
+Build 1.0.1h Beta from 17.02.2024
+Improved english locale
+Improved translations
+Added finnish locale
+Small code improvements
+
 Build 1.0.1g Beta from 16.02.2024
 Added details for storage tab
 Improved CSS for details
