@@ -1,3 +1,8 @@
+Build 1.0.1 Stable from 18.02.2024
+Improved localization
+Added russian locale
+Small code improvements & bug fixes
+
 Build 1.0.1h Beta from 17.02.2024
 Improved english locale
 Improved translations

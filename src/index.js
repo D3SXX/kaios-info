@@ -1,18 +1,21 @@
 "use strict";
 
-const buildInfo = ["1.0.1h Beta", "17.02.2024"];
+const buildInfo = ["1.0.1 Stable", "18.02.2024"];
 let localeData;
 
-fetch("src/locale.json")
+function initLocale(){
+  draw.updateProgressBar(0,1,"Loading locale");
+  fetch("src/locale.json")
   .then((response) => {
     return response.json();
   })
   .then((data) => initProgram(data));
+}
 
 function initProgram(data) {
-  debug.toggle();
   const userLocale = navigator.language;
   localeData = data[userLocale] || data["en-US"];
+  draw.updateProgressBar(0,1,localeData[0]["onLocaleInit"]);
   const initFunctions = [
     (callback) => systemData.init(callback),
     (callback) => displayData.init(callback),
@@ -305,7 +308,12 @@ const controls = {
         break;
       case "Backspace":
         e.preventDefault();
-        draw.toggleListMenu();
+        if(draw.detailsState){
+          draw.toggleDetails();
+        }
+        else{
+          draw.toggleListMenu();
+        }
         break;
     }
     softkeys.draw();
@@ -507,8 +515,8 @@ const menu = {
       navbarData += this.navbarList[i];
     }
     let i = 0;
-    while (navbarData.length > 150) {
-      navbarData = navbarData.substr(this.navbarList[i].length);
+    while (navbarData.length > 130) {
+      navbarData = navbarData.substring(this.navbarList[i].length);
       i += 1;
     }
     for (i = col; i < this.navbarList.length; i++) {
@@ -1365,9 +1373,9 @@ function getBluetoothInfo(type) {
         bluetoothData.state[0].toUpperCase() + bluetoothData.state.slice(1)
       );
     case "bluetooth-name":
-      return bluetoothData.name || localeData["unknown"];
+      return bluetoothData.name || localeData[0]["unknown"];
     case "bluetooth-address":
-      return bluetoothData.address || localeData["unknown"];
+      return bluetoothData.address || localeData[0]["unknown"];
     case "bluetooth-discoverable":
       return bluetoothData.discoverable ? localeData[0]["yes"] : localeData[0]["no"];
     case "bluetooth-discovering":
@@ -1526,7 +1534,7 @@ function getNetworkInfo(type, sim) {
     case "network-sim-roaming":
       return mobileData.data.roaming ? localeData[0]["yes"] : localeData[0]["no"];
     case "network-sim-state":
-      return mobileData.voice.state || localeData[0]["disabled"];
+      return mobileData.voice.state ? mobileData.voice.state[0].toUpperCase() + mobileData.voice.state.slice(1) : localeData[0]["disabled"];
     case "network-sim-iccid":
       return mobileData.iccId || localeData[0]["unknown"];
   }
@@ -1608,15 +1616,15 @@ const cameraData = {
           camera.camera.capabilities.pictureSizes[0].width *
           camera.camera.capabilities.pictureSizes[0].height *
           1e-6
-        ).toFixed(2)} MP (${camera.camera.capabilities.pictureSizes[0].width}x${
+        ).toFixed(2)} ${localeData[0]["megapixels"]} (${camera.camera.capabilities.pictureSizes[0].width}x${
           camera.camera.capabilities.pictureSizes[0].height
         })`;
       case "camera-photo-focal":
-        return `${camera.camera.focalLength.toFixed(2)} mm`;
+        return `${camera.camera.focalLength.toFixed(2)} ${localeData[0]["millimeters"]}`;
       case "camera-video-resolution":
         return `${recorder.name} (${recorder.video.width}x${recorder.video.height})`;
       case "camera-video-bitrate":
-        return `${recorder.video.bitsPerSecond * 1e-6} Mbps`;
+        return `${recorder.video.bitsPerSecond * 1e-6} ${localeData[0]["mbps"]}`;
       case "camera-video-framerate":
         return recorder.video.framesPerSecond;
       case "camera-video-codec":
@@ -1699,3 +1707,4 @@ function toast(msg = null) {
 }
 
 document.activeElement.addEventListener("keydown", controls.handleKeydown);
+initLocale();
