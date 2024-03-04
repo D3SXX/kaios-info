@@ -4,6 +4,7 @@
 ![](./docs/main_menu.png)
 ![](./docs/system.png)
 
+See more in [./docs](./docs/)
 ## Description
 
 KaiOS Info utilizes a variety of Mozilla's and KaiOS' APIs, along with some JavaScript APIs, to gather comprehensive device data. It offers the following tabs:
@@ -20,13 +21,14 @@ KaiOS Info utilizes a variety of Mozilla's and KaiOS' APIs, along with some Java
 - Storage (Type, Total Space, Space Used, Default Status)
 - About KaiOS Info
 
+It also has a tab with all the details, examples and sources of the APIs used.
+
 The program has been tested on Nokia 8110 4G with KaiOS 2.5.1.
 
 ## Notes
 
 - Certain tabs such as Battery, Wi-Fi, Network, Bluetooth, and Storage auto-refresh the data every second, which can be toggled in the Menu.
 - The program estimates CPU frequency since there is no API available for this purpose.
-- More screenshots are available at [./docs](./docs/) directory
 - To enable or disable debug output, press the "#" key once.
 
 ## How to install
